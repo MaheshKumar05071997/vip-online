@@ -186,17 +186,23 @@ export default function Footer() {
               </li>
             </ul>
             <div className="space-y-2 text-sm text-gray-600">
-              <p className="flex items-center">
+              <a
+                href="tel:+919845575885"
+                className="flex items-center hover:text-primary font-bold"
+              >
                 <Phone className="w-4 h-4 mr-2 text-accent" /> +91 98455 75885
-              </p>
-              <p className="flex items-center">
+              </a>
+              <a
+                href="mailto:sales@viponline.in"
+                className="flex items-center hover:text-primary"
+              >
                 <Mail className="w-4 h-4 mr-2 text-accent" /> sales@viponline.in
-              </p>
+              </a>
             </div>
           </div>
 
           {/* Column 5: Google Map Location */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1" id="our-location">
             <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wider text-accent">
               Our Location
             </h4>

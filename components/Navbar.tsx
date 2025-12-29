@@ -79,7 +79,12 @@ export default function Navbar() {
         <div className="bg-primary text-white py-4 px-4 flex justify-center items-center shadow-md relative z-10">
           <span className="text-sm md:text-base font-bold tracking-wide flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-700">
             📞 Call us for bulk orders:{" "}
-            <span className="text-yellow-300">+91 98455 75885</span>
+            <a
+              href="tel:+919845575885"
+              className="text-yellow-300 hover:underline"
+            >
+              +91 98455 75885
+            </a>
           </span>
         </div>
 
@@ -112,8 +117,27 @@ export default function Navbar() {
             </button>
           </form>
 
+          {/* Mobile Search Bar (Visible only on mobile) */}
+          <div className="md:hidden px-4 pb-4">
+            <form onSubmit={handleSearch} className="relative">
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full border border-gray-300 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:border-primary bg-gray-50"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="absolute left-3 top-2.5 text-gray-400"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+            </form>
+          </div>
+
           {/* Right Icons */}
-          <div className="flex items-center space-x-6 text-gray-700">
+          <div className="flex items-center space-x-4 text-gray-700">
             <Link
               href="/products"
               className="hidden md:block hover:text-primary font-medium"
@@ -121,15 +145,13 @@ export default function Navbar() {
               Browse Catalog
             </Link>
             <a
-              href="https://wa.me/919876543210"
-              className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition"
+              href="https://wa.me/919845575885"
+              className="flex items-center bg-green-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-full hover:bg-green-600 transition"
             >
               <Phone className="w-4 h-4 mr-2" />
               <span className="text-sm font-bold">Enquire</span>
             </a>
-            <button className="md:hidden">
-              <Menu className="w-6 h-6" />
-            </button>
+            {/* Hamburger Menu Removed as requested */}
           </div>
         </div>
 

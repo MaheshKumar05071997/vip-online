@@ -44,7 +44,7 @@ export default function Home() {
                   View All Products
                 </button>
               </Link>
-              <Link href="#contact-section">
+              <Link href="#our-location">
                 <button className="border border-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-gray-900 transition text-lg">
                   Contact Us
                 </button>
@@ -309,9 +309,8 @@ export default function Home() {
       </section>
 
       {/* Footer Wrapper with ID for scrolling */}
-      <div id="contact-section">
-        <Footer />
-      </div>
+
+      <Footer />
     </main>
   );
 }
