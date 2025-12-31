@@ -5,7 +5,6 @@ import Footer from "@/components/Footer";
 import { FEATURED_PRODUCTS } from "@/app/data";
 import {
   ArrowLeft,
-  Check,
   Phone,
   ShieldCheck,
   X,
@@ -89,6 +88,20 @@ export default function VariantDetailPage() {
     }
   };
 
+  // --- NEW BACK BUTTON LOGIC ---
+  // If Flush Doors or Laminates, go back to Catalog filtered by that category.
+  // Otherwise, go back to the Product Detail (intermediate) page.
+  const isDirectCategory = ["Flush Doors", "Laminates"].includes(
+    product.category
+  );
+  const backLink = isDirectCategory
+    ? `/products?search=${encodeURIComponent(product.category)}`
+    : `/products/${productId}`;
+
+  const backLabel = isDirectCategory
+    ? `Back to ${product.category}`
+    : `Back to ${product.name}`;
+
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
@@ -97,10 +110,10 @@ export default function VariantDetailPage() {
         {/* Back Button */}
         <div className="mb-8">
           <Link
-            href={`/products/${productId}`}
+            href={backLink}
             className="text-gray-500 hover:text-primary flex items-center text-sm font-medium"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to {product.name}
+            <ArrowLeft className="w-4 h-4 mr-2" /> {backLabel}
           </Link>
         </div>
 
@@ -148,7 +161,7 @@ export default function VariantDetailPage() {
                 </span>
               )}
 
-              {/* --- UPDATED CLICKABLE TEXT --- */}
+              {/* CLICKABLE TEXT FOR FORM */}
               <p
                 onClick={() => setIsFormOpen(true)}
                 className="text-xs text-blue-600 font-medium mt-2 cursor-pointer hover:underline flex items-center gap-1"

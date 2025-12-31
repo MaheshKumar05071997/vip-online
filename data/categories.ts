@@ -14,7 +14,7 @@ export const CATEGORIES: Category[] = [
   {
     id: 11,
     name: "Flush Doors",
-    image: "/ShopByCategory/block_boards.png",
+    image: "/ShopByCategory/flush_doors.png",
   },
   {
     id: 2,

@@ -3,59 +3,91 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
-import {
-  CATEGORIES,
-  FEATURED_PRODUCTS,
-  BRAND_DESCRIPTIONS,
-  BRANDS,
-} from "@/app/data";
+import { CATEGORIES, FEATURED_PRODUCTS } from "@/app/data";
+import { LAMINATE_BRANDS_CONFIG } from "@/data/laminate_brands"; // Import the new config
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft, SearchX, Home } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // --- CONFIGURATION ---
 const ITEMS_PER_PAGE = 24;
 
 function ProductContent() {
   const searchParams = useSearchParams();
-  const searchQuery = searchParams.get("search");
+  const router = useRouter();
 
+  // URL Params
+  const searchQuery = searchParams.get("search") || "";
+  const thicknessQuery = searchParams.get("thickness");
+  const categoryQuery = searchParams.get("category");
+
+  // State
   const [selectedCategory, setSelectedCategory] = useState("Plywoods");
-  const [isSearching, setIsSearching] = useState(false);
-
-  // --- PAGINATION STATE ---
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Check if the search query matches a known Brand (Case insensitive)
-  const matchedBrand = BRANDS.find(
-    (b) => b.toLowerCase() === searchQuery?.toLowerCase()
-  );
-  const isBrandPage = !!matchedBrand;
-
+  // --- 1. SYNC STATE WITH URL ---
   useEffect(() => {
-    // Reset to Page 1 whenever filters change
     setCurrentPage(1);
 
-    if (searchQuery) {
-      setIsSearching(true);
-      if (!isBrandPage) setSelectedCategory("All");
-    } else {
-      setIsSearching(false);
+    if (categoryQuery) {
+      setSelectedCategory(categoryQuery);
+    } else if (searchQuery) {
+      // If searching for a brand that is technically a laminate, switch category context if needed
+      // But usually search overrides category.
+      // For this specific flow, we treat "search" as the Brand Filter when inside Laminates.
+      const isLaminateBrand = LAMINATE_BRANDS_CONFIG.some(
+        (b) => b.name.toLowerCase() === searchQuery.toLowerCase()
+      );
+      if (isLaminateBrand) {
+        setSelectedCategory("Laminates");
+      }
     }
-  }, [searchQuery, isBrandPage]);
+  }, [searchQuery, categoryQuery, thicknessQuery]);
 
-  // Filter Logic
+  // --- 2. SPECIAL FLOW: LAMINATES BRAND SELECTION ---
+  // If we are in "Laminates" category BUT we haven't picked a specific thickness/brand combination yet
+  // (We use 'thicknessQuery' as the indicator that a user has made a selection)
+  const showLaminateBrands =
+    selectedCategory === "Laminates" && !thicknessQuery;
+
+  // --- 3. FILTER LOGIC ---
   const filteredProducts = FEATURED_PRODUCTS.filter((product) => {
-    if (isSearching && searchQuery) {
+    // A. Search / Brand Filter
+    if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      return (
+      const matchesSearch =
         product.name.toLowerCase().includes(query) ||
         product.brand.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query)
-      );
+        product.category.toLowerCase().includes(query);
+      if (!matchesSearch) return false;
     }
-    return product.category === selectedCategory;
+
+    // B. Category Filter
+    // If we are in "Laminates" mode (even with search), ensure we only show Laminates
+    if (selectedCategory === "Laminates" && product.category !== "Laminates") {
+      return false;
+    }
+    // Standard Category Filter (if not searching globally)
+    if (
+      selectedCategory !== "All" &&
+      !searchQuery &&
+      product.category !== selectedCategory
+    ) {
+      return false;
+    }
+
+    // C. Thickness Filter (The New Requirement)
+    if (thicknessQuery && product.variants) {
+      // Check if ANY variant of this product has the selected thickness
+      // @ts-ignore
+      const hasThickness = product.variants.some(
+        (v: any) => v.thickness && v.thickness.includes(thicknessQuery)
+      );
+      if (!hasThickness) return false;
+    }
+
+    return true;
   });
 
   // --- PAGINATION LOGIC ---
@@ -68,168 +100,93 @@ function ProductContent() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Smooth scroll to top of product list
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // --- REUSABLE CARD COMPONENT (Full Image Style) ---
-  const ProductCard = ({ product }: { product: any }) => (
-    <Link href={`/products/${product.id}`} className="group block h-full">
-      <div className="relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-end">
-        {/* 1. FULL BACKGROUND IMAGE */}
-        <div className="absolute inset-0 w-full h-full bg-gray-200">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
-          />
-        </div>
-
-        {/* 2. GRADIENT OVERLAY (For Text Readability) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition duration-300" />
-
-        {/* 3. BRAND BADGE (Top Left) */}
-        <span className="absolute top-4 left-4 bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 rounded-full text-gray-900 z-10 shadow-sm border border-gray-100">
-          {product.brand}
-        </span>
-
-        {/* 4. TEXT CONTENT (Bottom) */}
-        <div className="relative z-10 p-6 flex flex-col items-start w-full">
-          <span className="text-accent text-[10px] font-bold tracking-widest uppercase mb-1 opacity-90">
-            {product.category}
-          </span>
-          <h3 className="text-xl font-bold text-white mb-1 leading-tight group-hover:text-accent transition drop-shadow-sm">
-            {product.name}
-          </h3>
-
-          {/* Hover Arrow */}
-          <div className="mt-3 flex items-center text-white/90 text-sm font-semibold group-hover:text-white transition">
-            View Details{" "}
-            <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-
-  // --- PAGINATION CONTROLS COMPONENT ---
-  const PaginationControls = () => {
-    if (totalPages <= 1) return null;
-
-    return (
-      <div className="flex justify-center items-center gap-2 mt-12 mb-8">
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50 disabled:hover:bg-white transition"
-        >
-          <ChevronLeft className="w-5 h-5 text-gray-700" />
-        </button>
-
-        {/* Page Numbers */}
-        <div className="flex gap-1">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`w-10 h-10 rounded-full font-bold text-sm transition ${
-                currentPage === page
-                  ? "bg-gray-900 text-white shadow-lg"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-orange-50 hover:border-orange-200"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50 disabled:hover:bg-white transition"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-700" />
-        </button>
-      </div>
-    );
+  const handleCategoryClick = (catName: string) => {
+    setSelectedCategory(catName);
+    // Reset filters when switching categories
+    router.push(`/products?category=${encodeURIComponent(catName)}`);
   };
 
-  // --- VIEW 1: BRAND COLLECTION PAGE (Full Width, No Sidebar) ---
-  if (isBrandPage && matchedBrand) {
+  // --- RENDER: LAMINATE BRAND SELECTOR ---
+  if (showLaminateBrands) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <FadeIn>
-          <div className="flex items-center text-sm text-gray-500 mb-6">
-            <Link href="/" className="hover:text-primary flex items-center">
-              <Home className="w-4 h-4 mr-1" /> Home
-            </Link>
-            <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="text-gray-900 font-semibold">{matchedBrand}</span>
-          </div>
-        </FadeIn>
+      <div className="container mx-auto px-4 py-12">
+        {/* REMOVED DUPLICATE NAVBAR HERE */}
 
-        <FadeIn delay={0.1}>
-          <div className="mb-12 border-b pb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              {matchedBrand}
+        <FadeIn>
+          <div className="flex items-center text-sm text-gray-500 mb-8">
+            <button
+              onClick={() => router.push("/")}
+              className="hover:text-primary flex items-center"
+            >
+              <Home className="w-4 h-4 mr-1" /> Home
+            </button>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span className="text-gray-900 font-bold">Laminates</span>
+          </div>
+
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Choose a Brand
             </h1>
-            <h2 className="text-xl text-gray-600 font-medium mb-6">
-              Buy {matchedBrand} Products Online at Best Prices from VIP
-            </h2>
-            <p className="text-gray-500 leading-relaxed max-w-4xl">
-              {BRAND_DESCRIPTIONS[matchedBrand] ||
-                `Explore the exclusive collection of ${matchedBrand} products at VIP Online. We offer the best wholesale rates for all ${matchedBrand} fittings and hardware.`}
+            <p className="text-gray-500 text-lg">
+              Hover over a brand to select thickness
             </p>
           </div>
         </FadeIn>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {displayedProducts.length > 0 ? (
-            displayedProducts.map((product, idx) => (
-              <FadeIn key={product.id} delay={idx * 0.05}>
-                <ProductCard product={product} />
-              </FadeIn>
-            ))
-          ) : (
-            <div className="col-span-full py-20 text-center bg-gray-50 rounded-xl border border-dashed">
-              <p className="text-gray-500">
-                No products found for {matchedBrand} yet.
-              </p>
-            </div>
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {LAMINATE_BRANDS_CONFIG.map((brand, idx) => (
+            <FadeIn key={idx} delay={idx * 0.1}>
+              <div className="group relative h-96 rounded-2xl overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-all duration-500">
+                {/* 1. Background Image */}
+                <img
+                  src={brand.image}
+                  alt={brand.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition duration-700 filter brightness-[0.8]"
+                />
+
+                {/* 2. Brand Name (Visible initially) */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/70 transition duration-500">
+                  <h2 className="text-4xl font-black text-white uppercase tracking-widest border-4 border-white/20 p-4 backdrop-blur-sm group-hover:opacity-0 transition duration-300 transform group-hover:-translate-y-4">
+                    {brand.name}
+                  </h2>
+                </div>
+
+                {/* 3. Hover Overlay (Thickness Options) */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 translate-y-4 group-hover:translate-y-0">
+                  <span className="text-gray-300 text-sm font-bold uppercase tracking-widest mb-6">
+                    Select Thickness
+                  </span>
+
+                  <div className="flex flex-col gap-4 w-full px-12">
+                    {brand.thicknesses.map((thickness) => (
+                      <Link
+                        key={thickness}
+                        // CLICK FLOW: Filters by Category + Brand + Thickness
+                        href={`/products?category=Laminates&search=${encodeURIComponent(
+                          brand.name
+                        )}&thickness=${encodeURIComponent(thickness)}`}
+                        className="w-full"
+                      >
+                        <button className="w-full bg-white hover:bg-accent text-gray-900 font-black text-2xl py-4 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg border-2 border-transparent hover:border-black/10">
+                          {thickness}
+                        </button>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
         </div>
-
-        {/* Add Pagination Here */}
-        <FadeIn>
-          <PaginationControls />
-        </FadeIn>
-
-        <FadeIn delay={0.2}>
-          <div className="mt-10 pt-10 border-t border-gray-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Why Buy {matchedBrand} from VIP?
-            </h3>
-            <ul className="list-disc pl-5 space-y-2 text-gray-600 mb-8">
-              <li>
-                <strong>Wholesale Pricing:</strong> Get the best market rates
-                for bulk and retail orders.
-              </li>
-              <li>
-                <strong>Authentic Products:</strong> 100% genuine products
-                directly from the manufacturer.
-              </li>
-              <li>
-                <strong>Fast Delivery:</strong> We ensure quick delivery across
-                Bangalore and nearby regions.
-              </li>
-            </ul>
-          </div>
-        </FadeIn>
       </div>
     );
   }
 
-  // --- VIEW 2: STANDARD CATALOG PAGE (With Sidebar) ---
+  // --- RENDER: STANDARD PRODUCT GRID (Filtered) ---
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col lg:flex-row gap-12">
@@ -244,24 +201,60 @@ function ProductContent() {
                 {CATEGORIES.map((cat) => (
                   <li key={cat.id}>
                     <button
-                      onClick={() => {
-                        setSelectedCategory(cat.name);
-                        setIsSearching(false);
-                      }}
+                      onClick={() => handleCategoryClick(cat.name)}
                       className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition flex justify-between items-center ${
-                        !isSearching && selectedCategory === cat.name
+                        selectedCategory === cat.name
                           ? "bg-primary text-white shadow-md"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                     >
                       {cat.name}
-                      {!isSearching && selectedCategory === cat.name && (
+                      {selectedCategory === cat.name && (
                         <ChevronRight className="w-4 h-4" />
                       )}
                     </button>
                   </li>
                 ))}
               </ul>
+
+              {/* Active Filters Display */}
+              {(thicknessQuery || searchQuery) && (
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    Active Filters
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCategory && (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold flex items-center">
+                        {selectedCategory}
+                      </span>
+                    )}
+                    {searchQuery && (
+                      <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold flex items-center">
+                        Brand: {searchQuery}
+                        <Link
+                          href={`/products?category=${selectedCategory}`}
+                          className="ml-2 hover:text-blue-800"
+                        >
+                          <SearchX className="w-3 h-3" />
+                        </Link>
+                      </span>
+                    )}
+                    {thicknessQuery && (
+                      <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-bold flex items-center">
+                        {thicknessQuery}
+                        {/* Clear thickness filter goes back to Brand Selector */}
+                        <Link
+                          href={`/products?category=Laminates`}
+                          className="ml-2 hover:text-yellow-900"
+                        >
+                          <SearchX className="w-3 h-3" />
+                        </Link>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </FadeIn>
         </div>
@@ -270,14 +263,10 @@ function ProductContent() {
         <div className="lg:w-3/4">
           <FadeIn>
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-              <span
-                className={`w-2 h-8 mr-3 rounded-full ${
-                  isSearching ? "bg-green-500" : "bg-accent"
-                }`}
-              ></span>
-              {isSearching
-                ? `Search Results for "${searchQuery}"`
-                : selectedCategory}
+              <span className={`w-2 h-8 mr-3 rounded-full bg-accent`}></span>
+              {selectedCategory}
+              {searchQuery && ` / ${searchQuery}`}
+              {thicknessQuery && ` / ${thicknessQuery}`}
               <span className="ml-auto text-sm text-gray-400 font-normal">
                 {filteredProducts.length} items
               </span>
@@ -287,15 +276,80 @@ function ProductContent() {
           {filteredProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedProducts.map((product, idx) => (
-                  <FadeIn key={product.id} delay={idx * 0.05}>
-                    <ProductCard product={product} />
-                  </FadeIn>
-                ))}
+                {displayedProducts.map((product, idx) => {
+                  // DIRECT LINK LOGIC:
+                  // For Laminates/Flush Doors, go directly to variant page with pre-selected thickness/name
+                  let targetLink = `/products/${product.id}`;
+                  if (
+                    ["Flush Doors", "Laminates"].includes(product.category) &&
+                    product.variants &&
+                    product.variants.length > 0
+                  ) {
+                    const firstVariant = product.variants[0];
+                    const vName = firstVariant.name || firstVariant;
+                    targetLink = `/products/${
+                      product.id
+                    }/variant?name=${encodeURIComponent(vName)}`;
+                  }
+
+                  return (
+                    <FadeIn key={product.id} delay={idx * 0.05}>
+                      <Link href={targetLink} className="group block h-full">
+                        <div className="relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-end">
+                          <div className="absolute inset-0 w-full h-full bg-gray-200">
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition duration-300" />
+
+                          <span className="absolute top-4 left-4 bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 rounded-full text-gray-900 z-10 shadow-sm border border-gray-100">
+                            {product.brand}
+                          </span>
+
+                          <div className="relative z-10 p-6 flex flex-col items-start w-full">
+                            <span className="text-accent text-[10px] font-bold tracking-widest uppercase mb-1 opacity-90">
+                              {product.category}
+                            </span>
+                            <h3 className="text-xl font-bold text-white mb-1 leading-tight group-hover:text-accent transition drop-shadow-sm">
+                              {product.name}
+                            </h3>
+                            <div className="mt-3 flex items-center text-white/90 text-sm font-semibold group-hover:text-white transition">
+                              View Details{" "}
+                              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </FadeIn>
+                  );
+                })}
               </div>
 
               {/* Pagination Controls */}
-              <PaginationControls />
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-12 mb-8">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-gray-700" />
+                  </button>
+                  <span className="px-4 font-bold text-gray-900">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50"
+                  >
+                    <ChevronRight className="w-5 h-5 text-gray-700" />
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <FadeIn>
@@ -307,17 +361,23 @@ function ProductContent() {
                   No products found
                 </h3>
                 <p className="text-gray-500 mt-2 max-w-sm">
-                  We couldn't find anything for "{searchQuery}". Try searching
-                  for categories like 'Plywood' or brands like 'Hafele'.
+                  We couldn't find any{" "}
+                  {thicknessQuery ? `${thicknessQuery} ` : ""}
+                  {searchQuery ? `${searchQuery} ` : ""}
+                  products in {selectedCategory}.
                 </p>
                 <button
                   onClick={() => {
-                    setSelectedCategory("Plywoods");
-                    setIsSearching(false);
+                    // If we are deep in filters, go back to Laminate Brand Selection
+                    if (selectedCategory === "Laminates") {
+                      router.push("/products?category=Laminates");
+                    } else {
+                      handleCategoryClick("All");
+                    }
                   }}
                   className="mt-6 text-primary font-semibold hover:underline"
                 >
-                  Clear Search & View Catalog
+                  Clear Filters
                 </button>
               </div>
             </FadeIn>
@@ -330,7 +390,6 @@ function ProductContent() {
 
 export default function CatalogPage() {
   return (
-    // No bg color here, using global background from layout.tsx
     <main className="min-h-screen">
       <Navbar />
       <Suspense

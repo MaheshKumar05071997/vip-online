@@ -1,8 +1,13 @@
 import { Product } from "./types";
 
 // We create a temporary list of your images
-const RAW_LIST = [
-  { name: "Design 10", image: "/merino/Page10_Img2_Unmatched.jpeg" },
+const LIST_1MM = [
+  {
+    name: "Design 10",
+    image: "/merino/Page10_Img2_Unmatched.jpeg",
+    price: 1800,
+    originalPrice: 2200,
+  },
   { name: "Design 10", image: "/merino/Page10_Img3_Unmatched.jpeg" },
   { name: "Design 10", image: "/merino/Page10_Img4_Unmatched.jpeg" },
   { name: "Design 10", image: "/merino/Page10_Img5_Unmatched.jpeg" },
@@ -272,13 +277,31 @@ const RAW_LIST = [
   { name: "Design 9", image: "/merino/Page9_Img7_Unmatched.jpeg" },
 ];
 
-// This automatically converts your simple list into full Product Cards
-export const MERINO_PRODUCTS: Product[] = RAW_LIST.map((item, idx) => ({
+// --- UPDATED MAP FUNCTION ---
+export const PRODUCTS_1MM: Product[] = LIST_1MM.map((item, idx) => ({
   id: 8000 + idx, // Creates unique ID (8000, 8001, etc.)
   name: `Merino ${item.name}`, // Adds "Merino" to the name
-  category: "Laminates", // <--- THIS puts it in the Laminates category!
+  category: "Laminates",
   brand: "Merino",
   image: item.image,
   description: "Premium Merino High-Pressure Laminate.",
-  variants: [],
+
+  // --- AUTOMATICALLY ADD VARIANT DATA HERE ---
+  variants: [
+    {
+      name: "Standard", // The default name for this variant
+      image: item.image, // Use the image from the list
+      price: item.price || 1200, // Default price (You can change this)
+      originalPrice: item.originalPrice || 7500, // Default original price
+      thickness: ["0.8mm"], // Default thickness
+      sizes: ["8x4"], // Default size
+      specs: {
+        Finish: "Suede / Gloss",
+        Type: "Premium Laminate",
+        Warranty: "10 Years",
+      },
+    },
+  ],
 }));
+
+export const MERINO_PRODUCTS = [...PRODUCTS_1MM];

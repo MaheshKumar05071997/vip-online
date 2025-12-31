@@ -249,35 +249,52 @@ export default function Home() {
           </FadeIn>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {FEATURED_PRODUCTS.slice(0, 4).map((product, idx) => (
-              <FadeIn key={product.id} delay={idx * 0.1}>
-                <Link href={`/products/${product.id}`} className="block group">
-                  <div className="border border-orange-100 rounded-xl overflow-hidden hover:shadow-lg transition bg-white h-full">
-                    <div className="h-48 bg-gray-100 relative">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                      <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 rounded">
-                        {product.brand}
-                      </span>
+            {FEATURED_PRODUCTS.slice(0, 4).map((product, idx) => {
+              // --- UPDATED LINK LOGIC FOR FLUSH DOORS & LAMINATES ---
+              let targetLink = `/products/${product.id}`;
+              if (
+                ["Flush Doors", "Laminates"].includes(product.category) &&
+                product.variants &&
+                product.variants.length > 0
+              ) {
+                // @ts-ignore
+                const vName = product.variants[0].name || product.variants[0];
+                targetLink = `/products/${
+                  product.id
+                }/variant?name=${encodeURIComponent(vName)}`;
+              }
+              // ------------------------------------------------------
+
+              return (
+                <FadeIn key={product.id} delay={idx * 0.1}>
+                  <Link href={targetLink} className="block group">
+                    <div className="border border-orange-100 rounded-xl overflow-hidden hover:shadow-lg transition bg-white h-full">
+                      <div className="h-48 bg-gray-100 relative">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        />
+                        <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 rounded">
+                          {product.brand}
+                        </span>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-primary transition">
+                          {product.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm mb-4">
+                          {product.category}
+                        </p>
+                        <button className="w-full bg-orange-50 text-gray-800 py-2 rounded-lg font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
+                          View Details
+                        </button>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-primary transition">
-                        {product.name}
-                      </h3>
-                      <p className="text-gray-500 text-sm mb-4">
-                        {product.category}
-                      </p>
-                      <button className="w-full bg-orange-50 text-gray-800 py-2 rounded-lg font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                </Link>
-              </FadeIn>
-            ))}
+                  </Link>
+                </FadeIn>
+              );
+            })}
           </div>
         </div>
       </section>
