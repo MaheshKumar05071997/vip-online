@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import FadeIn from "@/components/FadeIn"; // Import Animation
+import FadeIn from "@/components/FadeIn";
 import {
   CATEGORIES,
   FEATURED_PRODUCTS,
@@ -11,8 +11,11 @@ import {
 } from "@/app/data";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { ChevronRight, SearchX, Home } from "lucide-react";
+import { ChevronRight, ChevronLeft, SearchX, Home } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+
+// --- CONFIGURATION ---
+const ITEMS_PER_PAGE = 24;
 
 function ProductContent() {
   const searchParams = useSearchParams();
@@ -21,6 +24,9 @@ function ProductContent() {
   const [selectedCategory, setSelectedCategory] = useState("Plywoods");
   const [isSearching, setIsSearching] = useState(false);
 
+  // --- PAGINATION STATE ---
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Check if the search query matches a known Brand (Case insensitive)
   const matchedBrand = BRANDS.find(
     (b) => b.toLowerCase() === searchQuery?.toLowerCase()
@@ -28,6 +34,9 @@ function ProductContent() {
   const isBrandPage = !!matchedBrand;
 
   useEffect(() => {
+    // Reset to Page 1 whenever filters change
+    setCurrentPage(1);
+
     if (searchQuery) {
       setIsSearching(true);
       if (!isBrandPage) setSelectedCategory("All");
@@ -48,6 +57,102 @@ function ProductContent() {
     }
     return product.category === selectedCategory;
   });
+
+  // --- PAGINATION LOGIC ---
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const displayedProducts = filteredProducts.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Smooth scroll to top of product list
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // --- REUSABLE CARD COMPONENT (Full Image Style) ---
+  const ProductCard = ({ product }: { product: any }) => (
+    <Link href={`/products/${product.id}`} className="group block h-full">
+      <div className="relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-end">
+        {/* 1. FULL BACKGROUND IMAGE */}
+        <div className="absolute inset-0 w-full h-full bg-gray-200">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
+          />
+        </div>
+
+        {/* 2. GRADIENT OVERLAY (For Text Readability) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition duration-300" />
+
+        {/* 3. BRAND BADGE (Top Left) */}
+        <span className="absolute top-4 left-4 bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 rounded-full text-gray-900 z-10 shadow-sm border border-gray-100">
+          {product.brand}
+        </span>
+
+        {/* 4. TEXT CONTENT (Bottom) */}
+        <div className="relative z-10 p-6 flex flex-col items-start w-full">
+          <span className="text-accent text-[10px] font-bold tracking-widest uppercase mb-1 opacity-90">
+            {product.category}
+          </span>
+          <h3 className="text-xl font-bold text-white mb-1 leading-tight group-hover:text-accent transition drop-shadow-sm">
+            {product.name}
+          </h3>
+
+          {/* Hover Arrow */}
+          <div className="mt-3 flex items-center text-white/90 text-sm font-semibold group-hover:text-white transition">
+            View Details{" "}
+            <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+
+  // --- PAGINATION CONTROLS COMPONENT ---
+  const PaginationControls = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-12 mb-8">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50 disabled:hover:bg-white transition"
+        >
+          <ChevronLeft className="w-5 h-5 text-gray-700" />
+        </button>
+
+        {/* Page Numbers */}
+        <div className="flex gap-1">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`w-10 h-10 rounded-full font-bold text-sm transition ${
+                currentPage === page
+                  ? "bg-gray-900 text-white shadow-lg"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-orange-50 hover:border-orange-200"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50 disabled:hover:bg-white transition"
+        >
+          <ChevronRight className="w-5 h-5 text-gray-700" />
+        </button>
+      </div>
+    );
+  };
 
   // --- VIEW 1: BRAND COLLECTION PAGE (Full Width, No Sidebar) ---
   if (isBrandPage && matchedBrand) {
@@ -78,41 +183,11 @@ function ProductContent() {
           </div>
         </FadeIn>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((product, idx) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {displayedProducts.length > 0 ? (
+            displayedProducts.map((product, idx) => (
               <FadeIn key={product.id} delay={idx * 0.05}>
-                <Link
-                  href={`/products/${product.id}`}
-                  key={product.id}
-                  className="group block"
-                >
-                  <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-xl transition h-full flex flex-col">
-                    <div className="h-64 bg-gray-100 relative overflow-hidden">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                      <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full text-gray-800">
-                        {product.brand}
-                      </span>
-                    </div>
-                    <div className="p-6 flex-1 flex flex-col">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-primary transition">
-                        {product.name}
-                      </h3>
-                      <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-                        {product.category}
-                      </p>
-                      <div className="mt-auto">
-                        <span className="text-accent text-sm font-bold flex items-center group-hover:underline">
-                          View Details <ChevronRight className="w-4 h-4 ml-1" />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <ProductCard product={product} />
               </FadeIn>
             ))
           ) : (
@@ -124,8 +199,13 @@ function ProductContent() {
           )}
         </div>
 
+        {/* Add Pagination Here */}
+        <FadeIn>
+          <PaginationControls />
+        </FadeIn>
+
         <FadeIn delay={0.2}>
-          <div className="mt-20 pt-10 border-t border-gray-200">
+          <div className="mt-10 pt-10 border-t border-gray-200">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               Why Buy {matchedBrand} from VIP?
             </h3>
@@ -198,49 +278,25 @@ function ProductContent() {
               {isSearching
                 ? `Search Results for "${searchQuery}"`
                 : selectedCategory}
+              <span className="ml-auto text-sm text-gray-400 font-normal">
+                {filteredProducts.length} items
+              </span>
             </h2>
           </FadeIn>
 
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map((product, idx) => (
-                <FadeIn key={product.id} delay={idx * 0.05}>
-                  <Link
-                    href={`/products/${product.id}`}
-                    key={product.id}
-                    className="group"
-                  >
-                    <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-xl transition h-full flex flex-col">
-                      <div className="h-56 bg-gray-100 relative overflow-hidden">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full text-gray-800">
-                          {product.brand}
-                        </span>
-                      </div>
-                      <div className="p-6 flex-1 flex flex-col">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-primary transition">
-                          {product.name}
-                        </h3>
-                        <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-                          Premium quality {product.category.toLowerCase()} from{" "}
-                          {product.brand}.
-                        </p>
-                        <div className="mt-auto">
-                          <span className="text-accent text-sm font-bold flex items-center group-hover:underline">
-                            View Details{" "}
-                            <ChevronRight className="w-4 h-4 ml-1" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </FadeIn>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedProducts.map((product, idx) => (
+                  <FadeIn key={product.id} delay={idx * 0.05}>
+                    <ProductCard product={product} />
+                  </FadeIn>
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <PaginationControls />
+            </>
           ) : (
             <FadeIn>
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed text-center">
@@ -274,17 +330,14 @@ function ProductContent() {
 
 export default function CatalogPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
+    // No bg color here, using global background from layout.tsx
+    <main className="min-h-screen">
       <Navbar />
-
-      {/* Header logic moved inside ProductContent or Conditional Rendering if needed */}
-
       <Suspense
         fallback={<div className="text-center py-20">Loading catalog...</div>}
       >
         <ProductContent />
       </Suspense>
-
       <Footer />
     </main>
   );

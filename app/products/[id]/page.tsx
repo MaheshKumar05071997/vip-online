@@ -1,10 +1,10 @@
 import Navbar from "@/components/Navbar";
-import FadeIn from "@/components/FadeIn"; // Import Animation
+import FadeIn from "@/components/FadeIn";
 import { FEATURED_PRODUCTS } from "@/app/data";
-import { Phone, Check, ArrowLeft } from "lucide-react";
+import { Phone, Check, ArrowLeft, Layers, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Metadata } from "next"; // Import Metadata type
+import { Metadata } from "next";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -16,29 +16,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = FEATURED_PRODUCTS.find((p) => p.id === Number(id));
 
   if (!product) {
-    return {
-      title: "Product Not Found",
-    };
+    return { title: "Product Not Found" };
   }
 
   return {
-    title: product.name, // e.g. "Hafele Kitchen Tandem Box"
-    description: `Buy ${product.name} by ${product.brand}. Premium ${product.category} at wholesale prices from VIP Online.`,
+    title: product.name,
+    description: `Buy ${product.name} at wholesale prices. Authorized dealer for ${product.brand}.`,
     openGraph: {
-      images: [product.image], // Shows the product image when shared on WhatsApp/Facebook
+      images: [product.image],
     },
   };
 }
 
 // --- MAIN PAGE COMPONENT ---
 export default async function ProductPage({ params }: Props) {
-  // 1. Await the params object (Critical for Next.js 15)
   const { id } = await params;
-
-  // 2. Now we can safely use the ID
   const product = FEATURED_PRODUCTS.find((p) => p.id === Number(id));
 
-  // 3. If product not found, show 404
   if (!product) {
     return notFound();
   }
@@ -51,82 +45,129 @@ export default async function ProductPage({ params }: Props) {
         {/* Back Button */}
         <FadeIn direction="right">
           <Link
-            href="/"
+            href="/products"
             className="inline-flex items-center text-gray-500 hover:text-primary mb-8 transition"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Catalog
           </Link>
         </FadeIn>
 
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            {/* Left Side: Image */}
-            <FadeIn direction="right" className="h-full">
-              <div className="h-96 md:h-[600px] bg-gray-100 relative">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </FadeIn>
+        {/* PAGE HEADER (UPDATED STYLE) */}
+        <div className="text-center mb-16 max-w-5xl mx-auto">
+          <FadeIn delay={0.1}>
+            {/* Category Label */}
+            <span className="text-gray-500 font-bold tracking-[0.2em] uppercase text-xs mb-4 block">
+              — {product.category} —
+            </span>
 
-            {/* Right Side: Details */}
-            <div className="p-8 md:p-12 flex flex-col justify-center">
-              <FadeIn delay={0.1}>
-                <span className="text-accent font-bold tracking-wider uppercase text-sm mb-2">
-                  {product.category}
-                </span>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  {product.name}
-                </h1>
-              </FadeIn>
+            {/* STYLISH STRIPE HEADING */}
+            <div className="relative inline-block mb-8">
+              {/* The Yellow Background Stripe */}
+              <div className="absolute inset-0 bg-accent transform -skew-x-12 shadow-lg rounded-sm"></div>
 
-              <FadeIn delay={0.2}>
-                <div className="bg-blue-50 text-primary px-4 py-2 rounded-lg inline-block font-semibold mb-6 self-start">
-                  Brand: {product.brand}
-                </div>
-              </FadeIn>
-
-              <FadeIn delay={0.3}>
-                <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-                  Premium quality {product.name.toLowerCase()} from{" "}
-                  {product.brand}. Designed for durability and style. Perfect
-                  for modern interiors.
-                </p>
-              </FadeIn>
-
-              {/* Features List */}
-              <FadeIn delay={0.4}>
-                <div className="space-y-3 mb-8">
-                  {[
-                    "Authentic Product",
-                    "Warranty Included",
-                    "Best Price Guarantee",
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center text-gray-700">
-                      <Check className="w-5 h-5 text-green-500 mr-3" />
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </FadeIn>
-
-              {/* Call to Action */}
-              <FadeIn delay={0.5}>
-                <div className="flex flex-col gap-4">
-                  <a
-                    href={`https://wa.me/919876543210?text=Hi, I am interested in ${product.name}`}
-                    className="w-full bg-green-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-600 transition flex justify-center items-center gap-2 shadow-lg shadow-green-100"
-                  >
-                    <Phone className="w-5 h-5" /> Enquire on WhatsApp
-                  </a>
-                  <p className="text-center text-gray-400 text-sm">
-                    Instant response • Bulk discounts available
-                  </p>
-                </div>
-              </FadeIn>
+              {/* The Text */}
+              <h1 className="relative z-10 text-3xl md:text-5xl font-black text-gray-900 px-8 py-3 uppercase tracking-wider leading-tight">
+                {product.name}
+              </h1>
             </div>
+
+            {/* Brand Badge */}
+            <div className="block">
+              <div className="inline-block bg-white border border-gray-200 text-gray-800 px-6 py-2 rounded-full font-semibold shadow-sm mb-8">
+                Brand:{" "}
+                <span className="text-primary font-bold">{product.brand}</span>
+              </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.2}>
+            <p className="text-gray-600 text-lg leading-relaxed max-w-2xl mx-auto">
+              Select a sub-category below to view available sizes, thickness,
+              and wholesale prices.
+            </p>
+          </FadeIn>
+        </div>
+
+        {/* --- FULL WIDTH VARIANTS GRID --- */}
+        <FadeIn delay={0.3}>
+          {product.variants && product.variants.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* @ts-ignore */}
+              {product.variants.map((variant: any, idx: number) => (
+                <Link
+                  key={idx}
+                  href={`/products/${
+                    product.id
+                  }/variant?name=${encodeURIComponent(
+                    variant.name || variant
+                  )}`}
+                  className="group relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] flex flex-col shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden"
+                >
+                  {/* 1. FULL BACKGROUND IMAGE */}
+                  <div className="absolute inset-0 w-full h-full bg-gray-200">
+                    {variant.image ? (
+                      <img
+                        src={variant.image}
+                        alt={variant.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <Layers className="w-16 h-16 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2. GRADIENT OVERLAY */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition duration-300" />
+
+                  {/* 3. TEXT CONTENT */}
+                  <div className="absolute bottom-0 w-full p-6 flex flex-col items-center justify-end z-10 text-center h-full">
+                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-accent transition leading-tight drop-shadow-md">
+                      {variant.name || variant}
+                    </h3>
+                    <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-300">
+                      <span className="text-xs font-bold text-gray-900 flex items-center bg-white px-5 py-2 rounded-full shadow-lg">
+                        Click to view Sizes, Thickness & Price{" "}
+                        <ArrowRight className="w-3 h-3 ml-1" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            /* FALLBACK: Standard Description if no variants exist */
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center max-w-3xl mx-auto">
+              <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                Premium quality {product.name.toLowerCase()} from{" "}
+                {product.brand}. Designed for durability and style. Perfect for
+                modern interiors.
+              </p>
+              <div className="flex justify-center">
+                <a
+                  href={`https://wa.me/919845575885?text=Hi, I am interested in ${product.name}`}
+                  className="bg-green-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-green-600 transition flex items-center gap-2 shadow-lg shadow-green-100"
+                >
+                  <Phone className="w-5 h-5" /> Enquire on WhatsApp
+                </a>
+              </div>
+            </div>
+          )}
+        </FadeIn>
+
+        {/* Footer Trust Markers */}
+        <div className="mt-20 border-t border-gray-200 pt-10 flex flex-wrap justify-center gap-8 text-gray-500 text-sm">
+          <div className="flex items-center">
+            <Check className="w-4 h-4 text-green-500 mr-2" /> Authentic{" "}
+            {product.brand} Product
+          </div>
+          <div className="flex items-center">
+            <Check className="w-4 h-4 text-green-500 mr-2" /> Wholesale Pricing
+          </div>
+          <div className="flex items-center">
+            <Check className="w-4 h-4 text-green-500 mr-2" /> GST Invoice
+            Available
           </div>
         </div>
       </div>

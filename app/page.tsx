@@ -1,7 +1,14 @@
+"use client";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import FadeIn from "@/components/FadeIn"; // Import Animation
-import { BRANDS, CATEGORIES, FEATURED_PRODUCTS, TESTIMONIALS } from "./data";
+import FadeIn from "@/components/FadeIn";
+import {
+  FEATURED_BRANDS,
+  CATEGORIES,
+  FEATURED_PRODUCTS,
+  TESTIMONIALS,
+} from "@/app/data";
 import {
   ArrowRight,
   CheckCircle,
@@ -15,11 +22,15 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative bg-gray-900 text-white min-h-[100vh] flex items-center justify-center px-4">
+      <section
+        className="relative text-white min-h-[100vh] flex items-center justify-center px-4 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/shop_photo.png')" }}
+      >
+        <div className="absolute inset-0 bg-black/60 z-10"></div>
         <div className="absolute inset-0 bg-black/50 z-10"></div>
         <div className="container mx-auto relative z-20 text-center">
           <FadeIn delay={0.2}>
@@ -55,7 +66,7 @@ export default function Home() {
       </section>
 
       {/* 1. TRUST BAR */}
-      <section className="bg-white py-8 border-b">
+      <section className="py-8 border-b border-orange-200 bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           {[
             "Authorized Dealer",
@@ -74,7 +85,7 @@ export default function Home() {
       </section>
 
       {/* 2. STATS BAR */}
-      <section className="bg-gray-50 py-12">
+      <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <FadeIn delay={0.1}>
@@ -84,7 +95,7 @@ export default function Home() {
                   strokeWidth={1.5}
                 />
                 <h3 className="text-xl font-bold text-gray-900">1000+</h3>
-                <p className="text-gray-500 text-sm mt-1">Trusted Brands</p>
+                <p className="text-gray-600 text-sm mt-1">Trusted Brands</p>
               </div>
             </FadeIn>
             <FadeIn delay={0.2}>
@@ -94,7 +105,7 @@ export default function Home() {
                   strokeWidth={1.5}
                 />
                 <h3 className="text-xl font-bold text-gray-900">25,000+</h3>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-600 text-sm mt-1">
                   Products to choose from
                 </p>
               </div>
@@ -106,7 +117,7 @@ export default function Home() {
                   strokeWidth={1.5}
                 />
                 <h3 className="text-xl font-bold text-gray-900">3,000+</h3>
-                <p className="text-gray-500 text-sm mt-1">Happy Customers</p>
+                <p className="text-gray-600 text-sm mt-1">Happy Customers</p>
               </div>
             </FadeIn>
             <FadeIn delay={0.4}>
@@ -116,7 +127,7 @@ export default function Home() {
                   strokeWidth={1.5}
                 />
                 <h3 className="text-xl font-bold text-gray-900">1000+</h3>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-600 text-sm mt-1">
                   Architects & Designers
                 </p>
               </div>
@@ -126,7 +137,7 @@ export default function Home() {
       </section>
 
       {/* 3. SHOP BY CATEGORY */}
-      <section className="py-20 container mx-auto px-4 border-t border-gray-200">
+      <section className="py-20 container mx-auto px-4 border-t border-orange-200">
         <FadeIn>
           <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">
             Shop By Category
@@ -140,10 +151,12 @@ export default function Home() {
                 href={`/products?search=${cat.name}`}
                 className="group cursor-pointer flex flex-col items-center text-center w-40 md:w-48"
               >
-                <div className="w-40 h-40 md:w-44 md:h-44 rounded-full bg-white mb-6 overflow-hidden border-2 border-gray-200 group-hover:border-primary group-hover:shadow-xl transition-all duration-300 relative">
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                    Img
-                  </div>
+                <div className="w-40 h-40 md:w-44 md:h-44 rounded-full bg-white mb-6 overflow-hidden border-4 border-white shadow-sm group-hover:border-primary group-hover:shadow-xl transition-all duration-300 relative">
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                  />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800 group-hover:text-primary transition">
                   {cat.name}
@@ -154,8 +167,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. SHOP FROM LEADING BRANDS */}
-      <section className="py-16 bg-white border-t border-gray-100">
+      {/* 4. SHOP FROM LEADING BRANDS (UPDATED LAYOUT) */}
+      <section className="py-16 border-t border-orange-100 bg-white/50 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <FadeIn>
             <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center md:text-left">
@@ -164,22 +177,42 @@ export default function Home() {
           </FadeIn>
 
           <div className="flex flex-wrap justify-center gap-6">
-            {BRANDS.map((brand, idx) => (
+            {FEATURED_BRANDS.map((brand, idx) => (
               <FadeIn key={idx} delay={idx * 0.1}>
                 <Link
-                  href={`/products?search=${brand}`}
+                  href={`/products?search=${brand.name}`}
                   className="group w-full sm:w-56 md:w-64 block"
                 >
-                  <div className="bg-white border border-gray-100 rounded-xl p-6 flex flex-col items-center justify-center shadow-sm group-hover:shadow-md transition cursor-pointer aspect-[3/4]">
-                    <span className="text-xl font-bold text-accent tracking-widest">
-                      VIP
-                    </span>
-                    <span className="text-gray-400 font-medium my-2">X</span>
-                    <h3 className="text-xl font-bold text-gray-800 uppercase text-center group-hover:text-primary transition">
-                      {brand}
-                    </h3>
-                    <div className="mt-8 text-xs text-gray-400 flex items-center group-hover:text-accent transition">
-                      {brand} <ArrowRight className="w-3 h-3 ml-1" />
+                  <div className="relative bg-white border border-orange-100 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition cursor-pointer aspect-[3/4]">
+                    {/* Background Image */}
+                    <div className="absolute inset-0 bg-orange-50/50">
+                      <img
+                        src={brand.image}
+                        alt={brand.name}
+                        className="w-full h-full object-cover opacity-20 group-hover:opacity-30 group-hover:scale-105 transition duration-700"
+                      />
+                    </div>
+
+                    {/* VIP LABEL - Moved to TOP */}
+                    <div className="absolute top-8 left-0 right-0 z-10 flex flex-col items-center">
+                      <span className="text-2xl font-black text-orange-500 tracking-[0.2em] drop-shadow-sm">
+                        VIP{" "}
+                        <span className="text-gray-300 text-lg align-middle">
+                          X
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* BRAND NAME - Moved to BOTTOM (Above View Collection) */}
+                    <div className="absolute bottom-16 left-0 right-0 z-10 px-4 flex justify-center">
+                      <h3 className="text-3xl md:text-4xl font-black text-gray-900 uppercase text-center leading-none group-hover:text-primary transition drop-shadow-md">
+                        {brand.name}
+                      </h3>
+                    </div>
+
+                    {/* View Collection - Pinned to bottom edge */}
+                    <div className="absolute bottom-6 left-0 right-0 flex justify-center text-xs text-gray-500 font-bold group-hover:text-accent transition z-10">
+                      View Collection <ArrowRight className="w-3 h-3 ml-1" />
                     </div>
                   </div>
                 </Link>
@@ -200,7 +233,7 @@ export default function Home() {
       </section>
 
       {/* 5. TRENDING PRODUCTS */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <FadeIn>
             <div className="flex justify-between items-end mb-8">
@@ -216,10 +249,10 @@ export default function Home() {
           </FadeIn>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {FEATURED_PRODUCTS.map((product, idx) => (
+            {FEATURED_PRODUCTS.slice(0, 4).map((product, idx) => (
               <FadeIn key={product.id} delay={idx * 0.1}>
                 <Link href={`/products/${product.id}`} className="block group">
-                  <div className="border rounded-xl overflow-hidden hover:shadow-lg transition bg-white h-full">
+                  <div className="border border-orange-100 rounded-xl overflow-hidden hover:shadow-lg transition bg-white h-full">
                     <div className="h-48 bg-gray-100 relative">
                       <img
                         src={product.image}
@@ -237,7 +270,7 @@ export default function Home() {
                       <p className="text-gray-500 text-sm mb-4">
                         {product.category}
                       </p>
-                      <button className="w-full bg-gray-100 text-gray-800 py-2 rounded-lg font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
+                      <button className="w-full bg-orange-50 text-gray-800 py-2 rounded-lg font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
                         View Details
                       </button>
                     </div>
@@ -250,7 +283,7 @@ export default function Home() {
       </section>
 
       {/* 6. CUSTOMER REVIEWS */}
-      <section className="py-20 bg-white border-t border-gray-100">
+      <section className="py-20 bg-white/60 backdrop-blur-sm border-t border-orange-100">
         <div className="container mx-auto px-4 text-center">
           <FadeIn>
             <h2 className="text-3xl font-bold text-gray-900 mb-16">
@@ -262,14 +295,13 @@ export default function Home() {
             {TESTIMONIALS.map((review, idx) => (
               <FadeIn key={review.id} delay={idx * 0.2}>
                 <div className="flex flex-col items-center">
-                  <div className="w-20 h-20 rounded-full overflow-hidden mb-6 border-4 border-gray-50 shadow-sm">
+                  <div className="w-20 h-20 rounded-full overflow-hidden mb-6 border-4 border-orange-100 shadow-sm">
                     <img
                       src={review.image}
                       alt={review.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-
                   <div className="flex gap-1 mb-4">
                     {[...Array(review.rating)].map((_, i) => (
                       <Star
@@ -278,11 +310,9 @@ export default function Home() {
                       />
                     ))}
                   </div>
-
                   <h3 className="text-lg font-bold text-gray-900 mb-4">
                     {review.name}
                   </h3>
-
                   <p className="text-gray-500 text-sm leading-relaxed">
                     "{review.text}"
                   </p>
@@ -291,11 +321,10 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Leave a Review Button */}
           <FadeIn delay={0.4}>
             <div>
               <a
-                href="https://www.google.com/maps/place/Vishwakarma+Interior+Products/@13.069999,77.63347,14z/data=!4m18!1m9!3m8!1s0x3bae19c56f95ce6f:0x746c77d989937fd3!2sVishwakarma+Interior+Products!8m2!3d13.0699986!4d77.6334698!9m1!1b1!16s%2Fg%2F11scrt5jwz!3m7!1s0x3bae19c56f95ce6f:0x746c77d989937fd3!8m2!3d13.0699986!4d77.6334698!9m1!1b1!16s%2Fg%2F11scrt5jwz?hl=en&entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D" /* <-- PASTE YOUR LINK HERE */
+                href="https://www.google.com/maps/place/Vishwakarma+Interior+Products/@13.069999,77.63347,14z/data=!4m18!1m9!3m8!1s0x3bae19c56f95ce6f:0x746c77d989937fd3!2sVishwakarma+Interior+Products!8m2!3d13.0699986!4d77.6334698!9m1!1b1!16s%2Fg%2F11scrt5jwz!3m7!1s0x3bae19c56f95ce6f:0x746c77d989937fd3!8m2!3d13.0699986!4d77.6334698!9m1!1b1!16s%2Fg%2F11scrt5jwz?hl=en&entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -307,8 +336,6 @@ export default function Home() {
           </FadeIn>
         </div>
       </section>
-
-      {/* Footer Wrapper with ID for scrolling */}
 
       <Footer />
     </main>
