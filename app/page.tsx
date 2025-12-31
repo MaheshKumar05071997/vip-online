@@ -11,128 +11,184 @@ import {
 } from "@/app/data";
 import {
   ArrowRight,
-  CheckCircle,
   Tag,
   Package,
   Smile,
   PenTool,
   Star,
+  // --- NEW ICONS ---
+  ShieldCheck,
+  Award,
+  Truck,
+  Banknote,
 } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
+  // --- TRUST BAR CONFIG ---
+  const TRUST_BADGES = [
+    {
+      icon: ShieldCheck,
+      label: "Authorized Dealer",
+      sub: "Genuine Products",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      icon: Award,
+      label: "Premium Brands",
+      sub: "Hafele, Blum & More",
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+    {
+      icon: Banknote,
+      label: "Bulk Discounts",
+      sub: "Best Market Rates",
+      color: "text-green-600",
+      bg: "bg-green-50",
+    },
+    {
+      icon: Truck,
+      label: "Fast Delivery",
+      sub: "Bangalore & Beyond",
+      color: "text-orange-600",
+      bg: "bg-orange-50",
+    },
+  ];
+
   return (
     <main className="min-h-screen">
       <Navbar />
 
-      {/* Hero Section */}
-      <section
-        className="relative text-white min-h-[100vh] flex items-center justify-center px-4 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/shop_photo.png')" }}
-      >
-        <div className="absolute inset-0 bg-black/60 z-10"></div>
-        <div className="absolute inset-0 bg-black/50 z-10"></div>
-        <div className="container mx-auto relative z-20 text-center">
-          <FadeIn delay={0.2}>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Vishwakarma Interior Products, <br />
-              <br></br>
-              <span className="text-accent">Wholesale Prices</span>
-            </h1>
-          </FadeIn>
+      {/* FLOATING LEFT STATS BAR */}
+      <div className="hidden lg:flex fixed left-6 top-1/2 -translate-y-1/2 z-40">
+        <div className="flex flex-col gap-6 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-300 backdrop-blur-md border border-orange-200 rounded-2xl px-5 py-6 shadow-xl">
+          {/* Trusted Brands */}
+          <div className="flex flex-col items-center text-center group cursor-default">
+            <Tag className="w-8 h-8 text-orange-500 mb-2 group-hover:scale-110 transition" />
+            <span className="text-lg font-bold text-gray-900">1000+</span>
+            <span className="text-xs text-gray-500">Trusted Brands</span>
+          </div>
 
-          <FadeIn delay={0.4}>
-            <p className="text-xl text-gray-200 mb-10 max-w-2xl mx-auto">
-              Authorized dealers of Hafele, Blum, and Greenply. One-stop shop
-              for Plywood, Hardware, and Safety Locks.
-            </p>
-          </FadeIn>
+          {/* Products */}
+          <div className="flex flex-col items-center text-center group cursor-default">
+            <Package className="w-8 h-8 text-orange-500 mb-2 group-hover:scale-110 transition" />
+            <span className="text-lg font-bold text-gray-900">25,000+</span>
+            <span className="text-xs text-gray-500">Products</span>
+          </div>
 
-          <FadeIn delay={0.6}>
-            <div className="flex justify-center gap-4">
-              <Link href="/products">
-                <button className="bg-accent text-gray-900 px-8 py-4 rounded-full font-bold hover:bg-yellow-500 transition text-lg">
-                  View All Products
-                </button>
-              </Link>
-              <Link href="#our-location">
-                <button className="border border-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-gray-900 transition text-lg">
-                  Contact Us
-                </button>
-              </Link>
-            </div>
-          </FadeIn>
+          {/* Happy Customers */}
+          <div className="flex flex-col items-center text-center group cursor-default">
+            <Smile className="w-8 h-8 text-orange-500 mb-2 group-hover:scale-110 transition" />
+            <span className="text-lg font-bold text-gray-900">3,000+</span>
+            <span className="text-xs text-gray-500">Happy Clients</span>
+          </div>
+
+          {/* Architects */}
+          <div className="flex flex-col items-center text-center group cursor-default">
+            <PenTool className="w-8 h-8 text-orange-500 mb-2 group-hover:scale-110 transition" />
+            <span className="text-lg font-bold text-gray-900">1000+</span>
+            <span className="text-xs text-gray-500">Architects</span>
+          </div>
         </div>
-      </section>
+      </div>
 
-      {/* 1. TRUST BAR */}
-      <section className="py-8 border-b border-orange-200 bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          {[
-            "Authorized Dealer",
-            "Premium Brands",
-            "Bulk Discounts",
-            "Fast Delivery",
-          ].map((item, idx) => (
-            <FadeIn key={idx} delay={idx * 0.1}>
-              <div className="flex flex-col items-center">
-                <CheckCircle className="text-green-500 mb-2 w-6 h-6" />
-                <span className="font-semibold text-gray-700">{item}</span>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </section>
+      {/* --- NEW & TRENDY HERO SECTION --- */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+        {/* Background Image with Fixed Position for Parallax Feel */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0 bg-fixed"
+          style={{ backgroundImage: "url('/main_shop_image.jpeg')" }}
+        />
 
-      {/* 2. STATS BAR */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <FadeIn delay={0.1}>
-              <div className="flex flex-col items-center">
-                <Tag
-                  className="w-10 h-10 text-gray-900 mb-4"
-                  strokeWidth={1.5}
-                />
-                <h3 className="text-xl font-bold text-gray-900">1000+</h3>
-                <p className="text-gray-600 text-sm mt-1">Trusted Brands</p>
-              </div>
-            </FadeIn>
+        {/* Modern Gradient Overlay (Darker at bottom for text readability) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90 z-10" />
+
+        <div className="container mx-auto px-4 relative z-20 pt-20">
+          <div className="max-w-5xl mx-auto text-center">
             <FadeIn delay={0.2}>
-              <div className="flex flex-col items-center">
-                <Package
-                  className="w-10 h-10 text-gray-900 mb-4"
-                  strokeWidth={1.5}
-                />
-                <h3 className="text-xl font-bold text-gray-900">25,000+</h3>
-                <p className="text-gray-600 text-sm mt-1">
-                  Products to choose from
-                </p>
+              {/* Premium Badge for "Wholesale Prices" */}
+              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mb-8 shadow-2xl">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                </span>
+                <span className="text-orange-300 font-bold uppercase tracking-widest text-xs md:text-sm">
+                  Wholesale Prices
+                </span>
               </div>
+
+              {/* Main Title - Big, Bold, Modern */}
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-orange-500 mb-8 tracking-tighter leading-[1.1] drop-shadow-xl">
+                Vishwakarma <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-red-600">
+                  Interior Products
+                </span>
+              </h1>
             </FadeIn>
-            <FadeIn delay={0.3}>
-              <div className="flex flex-col items-center">
-                <Smile
-                  className="w-10 h-10 text-gray-900 mb-4"
-                  strokeWidth={1.5}
-                />
-                <h3 className="text-xl font-bold text-gray-900">3,000+</h3>
-                <p className="text-gray-600 text-sm mt-1">Happy Customers</p>
-              </div>
-            </FadeIn>
+
             <FadeIn delay={0.4}>
-              <div className="flex flex-col items-center">
-                <PenTool
-                  className="w-10 h-10 text-gray-900 mb-4"
-                  strokeWidth={1.5}
-                />
-                <h3 className="text-xl font-bold text-gray-900">1000+</h3>
-                <p className="text-gray-600 text-sm mt-1">
-                  Architects & Designers
+              {/* Subtitle Box with Glass Effect */}
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 md:p-10 rounded-3xl mb-12 max-w-3xl mx-auto shadow-2xl ring-1 ring-white/10">
+                <p className="text-lg md:text-2xl text-gray-200 leading-relaxed font-light">
+                  Authorized dealers of{" "}
+                  <strong className="text-white font-semibold">Hafele</strong>,{" "}
+                  <strong className="text-white font-semibold">Blum</strong>,
+                  and{" "}
+                  <strong className="text-white font-semibold">Greenply</strong>
+                  .
+                  <span className="block mt-4 text-base md:text-lg text-gray-400">
+                    Your one-stop destination for Premium Plywood, Architectural
+                    Hardware, and Digital Safety Locks.
+                  </span>
                 </p>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.6}>
+              <div className="flex flex-col sm:flex-row justify-center gap-5">
+                <Link href="/products" className="group">
+                  <button className="w-full sm:w-auto bg-white text-black px-10 py-5 rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2">
+                    Explore Catalog
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </Link>
+                <Link href="#our-location">
+                  <button className="w-full sm:w-auto px-10 py-5 rounded-full font-bold text-lg text-white border border-white/20 hover:bg-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-1">
+                    Contact Us
+                  </button>
+                </Link>
               </div>
             </FadeIn>
           </div>
+        </div>
+      </section>
+
+      {/* 1. TRUST BAR (UPDATED) */}
+      <section className="py-10 border-b border-gray-100 bg-white shadow-sm relative z-20 -mt-8 mx-4 md:mx-auto md:max-w-6xl rounded-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-6">
+          {TRUST_BADGES.map((item, idx) => (
+            <FadeIn key={idx} delay={idx * 0.1}>
+              <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-gray-50 transition duration-300">
+                {/* Icon Box */}
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${item.bg} ${item.color}`}
+                >
+                  <item.icon className="w-6 h-6" strokeWidth={2} />
+                </div>
+                {/* Text */}
+                <div className="flex flex-col text-left">
+                  <span className="font-bold text-gray-900 leading-tight">
+                    {item.label}
+                  </span>
+                  <span className="text-xs text-gray-500 font-medium">
+                    {item.sub}
+                  </span>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
         </div>
       </section>
 
@@ -167,7 +223,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. SHOP FROM LEADING BRANDS (UPDATED LAYOUT) */}
+      {/* 4. SHOP FROM LEADING BRANDS */}
       <section className="py-16 border-t border-orange-100 bg-white/50 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <FadeIn>
@@ -193,7 +249,7 @@ export default function Home() {
                       />
                     </div>
 
-                    {/* VIP LABEL - Moved to TOP */}
+                    {/* VIP LABEL */}
                     <div className="absolute top-8 left-0 right-0 z-10 flex flex-col items-center">
                       <span className="text-2xl font-black text-orange-500 tracking-[0.2em] drop-shadow-sm">
                         VIP{" "}
@@ -203,14 +259,14 @@ export default function Home() {
                       </span>
                     </div>
 
-                    {/* BRAND NAME - Moved to BOTTOM (Above View Collection) */}
+                    {/* BRAND NAME */}
                     <div className="absolute bottom-16 left-0 right-0 z-10 px-4 flex justify-center">
                       <h3 className="text-3xl md:text-4xl font-black text-gray-900 uppercase text-center leading-none group-hover:text-primary transition drop-shadow-md">
                         {brand.name}
                       </h3>
                     </div>
 
-                    {/* View Collection - Pinned to bottom edge */}
+                    {/* View Collection */}
                     <div className="absolute bottom-6 left-0 right-0 flex justify-center text-xs text-gray-500 font-bold group-hover:text-accent transition z-10">
                       View Collection <ArrowRight className="w-3 h-3 ml-1" />
                     </div>
