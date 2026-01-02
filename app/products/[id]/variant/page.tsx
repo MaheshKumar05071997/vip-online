@@ -89,13 +89,11 @@ export default function VariantDetailPage() {
   };
 
   // --- NEW BACK BUTTON LOGIC ---
-  // If Flush Doors or Laminates, go back to Catalog filtered by that category.
-  // Otherwise, go back to the Product Detail (intermediate) page.
   const isDirectCategory = ["Flush Doors", "Laminates"].includes(
     product.category
   );
   const backLink = isDirectCategory
-    ? `/products?search=${encodeURIComponent(product.category)}`
+    ? `/products?category=${encodeURIComponent(product.category)}`
     : `/products/${productId}`;
 
   const backLabel = isDirectCategory
@@ -119,7 +117,8 @@ export default function VariantDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* LEFT COLUMN: LARGE IMAGE */}
-          <div className="bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 sticky top-24 h-fit">
+          {/* UPDATED: 'sticky' removed on mobile, added 'lg:sticky' for desktop only */}
+          <div className="bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 relative lg:sticky lg:top-24 h-fit">
             <img
               src={variant.image || product.image}
               alt={variant.name}

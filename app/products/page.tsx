@@ -4,10 +4,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { CATEGORIES, FEATURED_PRODUCTS } from "@/app/data";
-import { LAMINATE_BRANDS_CONFIG } from "@/data/laminate_brands"; // Import the new config
-import { useState, useEffect, Suspense } from "react";
+import { LAMINATE_BRANDS_CONFIG } from "@/data/laminate_brands";
+import { Suspense } from "react";
 import Link from "next/link";
-import { ChevronRight, ChevronLeft, SearchX, Home } from "lucide-react";
+import { ChevronRight, ChevronLeft, SearchX, Home, Filter } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 // --- CONFIGURATION ---
@@ -21,74 +21,110 @@ function ProductContent() {
   const searchQuery = searchParams.get("search") || "";
   const thicknessQuery = searchParams.get("thickness");
   const categoryQuery = searchParams.get("category");
+  const pageQuery = Number(searchParams.get("page")) || 1;
 
-  // State
-  const [selectedCategory, setSelectedCategory] = useState("Plywoods");
-  const [currentPage, setCurrentPage] = useState(1);
+  // --- FIXED LOGIC ---
+  const selectedCategory = categoryQuery || (searchQuery ? "All" : "Plywoods");
 
-  // --- 1. SYNC STATE WITH URL ---
-  useEffect(() => {
-    setCurrentPage(1);
+  const currentPage = pageQuery;
 
-    if (categoryQuery) {
-      setSelectedCategory(categoryQuery);
-    } else if (searchQuery) {
-      // If searching for a brand that is technically a laminate, switch category context if needed
-      // But usually search overrides category.
-      // For this specific flow, we treat "search" as the Brand Filter when inside Laminates.
-      const isLaminateBrand = LAMINATE_BRANDS_CONFIG.some(
-        (b) => b.name.toLowerCase() === searchQuery.toLowerCase()
-      );
-      if (isLaminateBrand) {
-        setSelectedCategory("Laminates");
-      }
-    }
-  }, [searchQuery, categoryQuery, thicknessQuery]);
+  // --- MOBILE OPTIMIZATION FLAG ---
+  const isMobileFiltered = !!categoryQuery || !!searchQuery;
 
-  // --- 2. SPECIAL FLOW: LAMINATES BRAND SELECTION ---
-  // If we are in "Laminates" category BUT we haven't picked a specific thickness/brand combination yet
-  // (We use 'thicknessQuery' as the indicator that a user has made a selection)
+  // --- 3. SPECIAL FLOW: LAMINATES BRAND SELECTION ---
   const showLaminateBrands =
     selectedCategory === "Laminates" && !thicknessQuery;
 
-  // --- 3. FILTER LOGIC ---
-  const filteredProducts = FEATURED_PRODUCTS.filter((product) => {
-    // A. Search / Brand Filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const matchesSearch =
+  // --- 4. FILTER LOGIC ---
+  let filteredProducts: any[] = [];
+
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+
+    FEATURED_PRODUCTS.forEach((product) => {
+      // 1. Check Parent Matches
+      const matchesParent =
         product.name.toLowerCase().includes(query) ||
         product.brand.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query);
-      if (!matchesSearch) return false;
-    }
 
-    // B. Category Filter
-    // If we are in "Laminates" mode (even with search), ensure we only show Laminates
-    if (selectedCategory === "Laminates" && product.category !== "Laminates") {
-      return false;
-    }
-    // Standard Category Filter (if not searching globally)
-    if (
-      selectedCategory !== "All" &&
-      !searchQuery &&
-      product.category !== selectedCategory
-    ) {
-      return false;
-    }
-
-    // C. Thickness Filter (The New Requirement)
-    if (thicknessQuery && product.variants) {
-      // Check if ANY variant of this product has the selected thickness
+      // 2. Check Variant Matches
       // @ts-ignore
-      const hasThickness = product.variants.some(
-        (v: any) => v.thickness && v.thickness.includes(thicknessQuery)
+      const variants = product.variants || [];
+      // @ts-ignore
+      const matchingVariants = variants.filter((v: any) =>
+        (v.name || v).toLowerCase().includes(query)
       );
-      if (!hasThickness) return false;
+
+      // --- LOGIC: EXPLODE VARIANTS ---
+      if (matchesParent) {
+        if (variants.length > 0) {
+          variants.forEach((v: any) => {
+            filteredProducts.push({
+              ...product,
+              ...v,
+              name: v.name || v,
+              image: v.image || product.image,
+              variantName: v.name || v,
+            });
+          });
+        } else {
+          filteredProducts.push(product);
+        }
+      } else if (matchingVariants.length > 0) {
+        matchingVariants.forEach((v: any) => {
+          filteredProducts.push({
+            ...product,
+            ...v,
+            name: v.name || v,
+            image: v.image || product.image,
+            variantName: v.name || v,
+          });
+        });
+      }
+    });
+
+    if (selectedCategory !== "All") {
+      filteredProducts = filteredProducts.filter(
+        (p) => p.category === selectedCategory
+      );
     }
 
-    return true;
-  });
+    if (thicknessQuery) {
+      filteredProducts = filteredProducts.filter(
+        (p) => p.thickness && p.thickness.includes(thicknessQuery)
+      );
+    }
+  } else {
+    // --- STANDARD BROWSING ---
+    filteredProducts = FEATURED_PRODUCTS.filter((product) => {
+      if (
+        selectedCategory === "Laminates" &&
+        product.category !== "Laminates"
+      ) {
+        return false;
+      }
+      if (selectedCategory !== "All" && product.category !== selectedCategory) {
+        return false;
+      }
+
+      if (thicknessQuery && product.variants) {
+        // @ts-ignore
+        const hasThickness = product.variants.some(
+          (v: any) => v.thickness && v.thickness.includes(thicknessQuery)
+        );
+        if (!hasThickness) return false;
+      }
+
+      return true;
+    });
+  }
+
+  // --- SPECIAL LAYOUT LOGIC FOR ADHESIVES ---
+  const isAdhesive = selectedCategory === "Adhesive";
+  const gridClass = isAdhesive
+    ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"
+    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
 
   // --- PAGINATION LOGIC ---
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
@@ -99,22 +135,20 @@ function ProductContent() {
   );
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.push(`/products?${params.toString()}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCategoryClick = (catName: string) => {
-    setSelectedCategory(catName);
-    // Reset filters when switching categories
-    router.push(`/products?category=${encodeURIComponent(catName)}`);
+    router.push(`/products?category=${encodeURIComponent(catName)}&page=1`);
   };
 
   // --- RENDER: LAMINATE BRAND SELECTOR ---
   if (showLaminateBrands) {
     return (
       <div className="container mx-auto px-4 py-12">
-        {/* REMOVED DUPLICATE NAVBAR HERE */}
-
         <FadeIn>
           <div className="flex items-center text-sm text-gray-500 mb-8">
             <button
@@ -141,31 +175,24 @@ function ProductContent() {
           {LAMINATE_BRANDS_CONFIG.map((brand, idx) => (
             <FadeIn key={idx} delay={idx * 0.1}>
               <div className="group relative h-96 rounded-2xl overflow-hidden cursor-default shadow-md hover:shadow-2xl transition-all duration-500">
-                {/* 1. Background Image */}
                 <img
                   src={brand.image}
                   alt={brand.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-700 filter brightness-[0.8]"
                 />
-
-                {/* 2. Brand Name (Visible initially) */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/70 transition duration-500">
                   <h2 className="text-4xl font-black text-white uppercase tracking-widest border-4 border-white/20 p-4 backdrop-blur-sm group-hover:opacity-0 transition duration-300 transform group-hover:-translate-y-4">
                     {brand.name}
                   </h2>
                 </div>
-
-                {/* 3. Hover Overlay (Thickness Options) */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 translate-y-4 group-hover:translate-y-0">
                   <span className="text-gray-300 text-sm font-bold uppercase tracking-widest mb-6">
                     Select Thickness
                   </span>
-
                   <div className="flex flex-col gap-4 w-full px-12">
                     {brand.thicknesses.map((thickness) => (
                       <Link
                         key={thickness}
-                        // CLICK FLOW: Filters by Category + Brand + Thickness
                         href={`/products?category=Laminates&search=${encodeURIComponent(
                           brand.name
                         )}&thickness=${encodeURIComponent(thickness)}`}
@@ -186,205 +213,286 @@ function ProductContent() {
     );
   }
 
-  // --- RENDER: STANDARD PRODUCT GRID (Filtered) ---
+  // --- RENDER: STANDARD PRODUCT GRID ---
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="flex flex-col lg:flex-row gap-12">
-        {/* SIDEBAR */}
-        <div className="lg:w-1/4">
-          <FadeIn direction="right">
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm sticky top-24">
-              <h3 className="font-bold text-lg mb-6 px-2 text-primary">
-                Categories
-              </h3>
-              <ul className="space-y-1">
-                {CATEGORIES.map((cat) => (
-                  <li key={cat.id}>
-                    <button
-                      onClick={() => handleCategoryClick(cat.name)}
-                      className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition flex justify-between items-center ${
-                        selectedCategory === cat.name
-                          ? "bg-primary text-white shadow-md"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    >
-                      {cat.name}
-                      {selectedCategory === cat.name && (
-                        <ChevronRight className="w-4 h-4" />
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Active Filters Display */}
-              {(thicknessQuery || searchQuery) && (
-                <div className="mt-8 pt-6 border-t border-gray-100">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-                    Active Filters
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedCategory && (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold flex items-center">
-                        {selectedCategory}
-                      </span>
-                    )}
-                    {searchQuery && (
-                      <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold flex items-center">
-                        Brand: {searchQuery}
-                        <Link
-                          href={`/products?category=${selectedCategory}`}
-                          className="ml-2 hover:text-blue-800"
-                        >
-                          <SearchX className="w-3 h-3" />
-                        </Link>
-                      </span>
-                    )}
-                    {thicknessQuery && (
-                      <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-bold flex items-center">
-                        {thicknessQuery}
-                        {/* Clear thickness filter goes back to Brand Selector */}
-                        <Link
-                          href={`/products?category=Laminates`}
-                          className="ml-2 hover:text-yellow-900"
-                        >
-                          <SearchX className="w-3 h-3" />
-                        </Link>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </FadeIn>
-        </div>
-
-        {/* MAIN CONTENT */}
-        <div className="lg:w-3/4">
+    <>
+      {/* --- FULL WIDTH HEADER BANNER (Outside Container) --- */}
+      <div className="w-full bg-white border-b border-gray-200 shadow-sm py-8 md:py-10">
+        <div className="container mx-auto px-4">
           <FadeIn>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-              <span className={`w-2 h-8 mr-3 rounded-full bg-accent`}></span>
-              {selectedCategory}
-              {searchQuery && ` / ${searchQuery}`}
-              {thicknessQuery && ` / ${thicknessQuery}`}
-              <span className="ml-auto text-sm text-gray-400 font-normal">
-                {filteredProducts.length} items
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 flex flex-wrap items-center gap-3">
+              <span
+                className={`w-2 h-10 rounded-full bg-accent hidden md:block`}
+              ></span>
+              {selectedCategory === "All" ? "Search Results" : selectedCategory}
+
+              {(searchQuery || thicknessQuery) && (
+                <span className="text-gray-400 font-light flex items-center text-2xl">
+                  {searchQuery && ` / ${searchQuery}`}
+                  {thicknessQuery && ` / ${thicknessQuery}`}
+                </span>
+              )}
+
+              <span className="ml-auto text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                {filteredProducts.length} Products
               </span>
             </h2>
           </FadeIn>
-
-          {filteredProducts.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedProducts.map((product, idx) => {
-                  // DIRECT LINK LOGIC:
-                  // For Laminates/Flush Doors, go directly to variant page with pre-selected thickness/name
-                  let targetLink = `/products/${product.id}`;
-                  if (
-                    ["Flush Doors", "Laminates"].includes(product.category) &&
-                    product.variants &&
-                    product.variants.length > 0
-                  ) {
-                    const firstVariant = product.variants[0];
-                    const vName = firstVariant.name || firstVariant;
-                    targetLink = `/products/${
-                      product.id
-                    }/variant?name=${encodeURIComponent(vName)}`;
-                  }
-
-                  return (
-                    <FadeIn key={product.id} delay={idx * 0.05}>
-                      <Link href={targetLink} className="group block h-full">
-                        <div className="relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-end">
-                          <div className="absolute inset-0 w-full h-full bg-gray-200">
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition duration-300" />
-
-                          <span className="absolute top-4 left-4 bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 rounded-full text-gray-900 z-10 shadow-sm border border-gray-100">
-                            {product.brand}
-                          </span>
-
-                          <div className="relative z-10 p-6 flex flex-col items-start w-full">
-                            <span className="text-accent text-[10px] font-bold tracking-widest uppercase mb-1 opacity-90">
-                              {product.category}
-                            </span>
-                            <h3 className="text-xl font-bold text-white mb-1 leading-tight group-hover:text-accent transition drop-shadow-sm">
-                              {product.name}
-                            </h3>
-                            <div className="mt-3 flex items-center text-white/90 text-sm font-semibold group-hover:text-white transition">
-                              View Details{" "}
-                              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    </FadeIn>
-                  );
-                })}
-              </div>
-
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-12 mb-8">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-gray-700" />
-                  </button>
-                  <span className="px-4 font-bold text-gray-900">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50"
-                  >
-                    <ChevronRight className="w-5 h-5 text-gray-700" />
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <FadeIn>
-              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed text-center">
-                <div className="bg-gray-100 p-4 rounded-full mb-4">
-                  <SearchX className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  No products found
-                </h3>
-                <p className="text-gray-500 mt-2 max-w-sm">
-                  We couldn't find any{" "}
-                  {thicknessQuery ? `${thicknessQuery} ` : ""}
-                  {searchQuery ? `${searchQuery} ` : ""}
-                  products in {selectedCategory}.
-                </p>
-                <button
-                  onClick={() => {
-                    // If we are deep in filters, go back to Laminate Brand Selection
-                    if (selectedCategory === "Laminates") {
-                      router.push("/products?category=Laminates");
-                    } else {
-                      handleCategoryClick("All");
-                    }
-                  }}
-                  className="mt-6 text-primary font-semibold hover:underline"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            </FadeIn>
-          )}
         </div>
       </div>
-    </div>
+
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          {/* UPDATED GAP: Reduced lg:gap-12 to lg:gap-6 to reduce wasted space */}
+
+          {/* SIDEBAR */}
+          <div className="lg:w-1/4">
+            <FadeIn direction="right">
+              <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-100 shadow-sm sticky top-24">
+                {/* --- MOBILE COMPACT HEADER --- */}
+                {isMobileFiltered && (
+                  <div className="lg:hidden mb-4 border-b border-gray-100 pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                          Category
+                        </span>
+                        <span className="font-bold text-gray-900 flex items-center gap-2 text-xl leading-tight">
+                          {selectedCategory === "All"
+                            ? "Search Results"
+                            : selectedCategory}
+                        </span>
+                      </div>
+                      <Link
+                        href="/products"
+                        className="text-xs font-bold bg-white text-primary border border-gray-200 px-3 py-2 rounded-full hover:bg-gray-50 shadow-sm whitespace-nowrap"
+                      >
+                        View All Categories
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* --- FULL CATEGORY LIST --- */}
+                <div
+                  className={`${
+                    isMobileFiltered ? "hidden lg:block" : "block"
+                  }`}
+                >
+                  <h3 className="font-bold text-lg mb-6 px-2 text-primary flex items-center gap-2">
+                    <Filter className="w-5 h-5" /> Categories
+                  </h3>
+                  <ul className="space-y-1">
+                    {CATEGORIES.map((cat) => (
+                      <li key={cat.id}>
+                        <button
+                          onClick={() => handleCategoryClick(cat.name)}
+                          className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition flex justify-between items-center ${
+                            selectedCategory === cat.name
+                              ? "bg-primary text-white shadow-md"
+                              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                          }`}
+                        >
+                          {cat.name}
+                          {selectedCategory === cat.name && (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Active Filters Display */}
+                {(thicknessQuery || searchQuery) && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                      Active Filters
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCategory !== "All" && (
+                        <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold flex items-center">
+                          {selectedCategory}
+                        </span>
+                      )}
+                      {searchQuery && (
+                        <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold flex items-center">
+                          Brand: {searchQuery}
+                          <Link
+                            href={`/products?category=${
+                              selectedCategory === "All"
+                                ? "Plywoods"
+                                : selectedCategory
+                            }`}
+                            className="ml-2 hover:text-blue-800"
+                          >
+                            <SearchX className="w-3 h-3" />
+                          </Link>
+                        </span>
+                      )}
+                      {thicknessQuery && (
+                        <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-bold flex items-center">
+                          {thicknessQuery}
+                          <Link
+                            href={`/products?category=Laminates`}
+                            className="ml-2 hover:text-yellow-900"
+                          >
+                            <SearchX className="w-3 h-3" />
+                          </Link>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* MAIN CONTENT */}
+          <div className="lg:w-3/4">
+            {/* Grid starts directly here now, header is above */}
+            <FadeIn>
+              {filteredProducts.length > 0 ? (
+                <>
+                  {/* Dynamic Grid */}
+                  <div className={gridClass}>
+                    {displayedProducts.map((product, idx) => {
+                      let targetLink = `/products/${product.id}`;
+
+                      if (product.variantName) {
+                        targetLink = `/products/${
+                          product.id
+                        }/variant?name=${encodeURIComponent(
+                          product.variantName
+                        )}`;
+                      } else if (
+                        (["Flush Doors", "Laminates"].includes(
+                          product.category
+                        ) ||
+                          product.name === "Grippo") &&
+                        product.variants &&
+                        product.variants.length > 0
+                      ) {
+                        // @ts-ignore
+                        const vName =
+                          product.variants[0].name || product.variants[0];
+                        targetLink = `/products/${
+                          product.id
+                        }/variant?name=${encodeURIComponent(vName)}`;
+                      }
+
+                      const isAdhesiveCard = product.category === "Adhesive";
+                      const titleSize = isAdhesiveCard ? "text-lg" : "text-xl";
+                      const paddingSize = isAdhesiveCard ? "p-3" : "p-6";
+
+                      return (
+                        <FadeIn
+                          key={`${product.id}-${product.variantName || idx}`}
+                          delay={idx * 0.05}
+                        >
+                          <Link
+                            href={targetLink}
+                            className="group block h-full"
+                          >
+                            <div className="relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-end">
+                              <div className="absolute inset-0 w-full h-full bg-gray-200">
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out"
+                                />
+                              </div>
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition duration-300" />
+
+                              <span className="absolute top-4 left-4 bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 rounded-full text-gray-900 z-10 shadow-sm border border-gray-100">
+                                {product.brand}
+                              </span>
+
+                              <div
+                                className={`relative z-10 ${paddingSize} flex flex-col items-start w-full`}
+                              >
+                                <span className="text-accent text-[10px] font-bold tracking-widest uppercase mb-1 opacity-90">
+                                  {product.category}
+                                </span>
+                                <h3
+                                  className={`${titleSize} font-bold text-white mb-1 leading-tight group-hover:text-accent transition drop-shadow-sm`}
+                                >
+                                  {product.name}
+                                </h3>
+                                <div className="mt-3 flex items-center text-white/90 text-sm font-semibold group-hover:text-white transition">
+                                  View Details{" "}
+                                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        </FadeIn>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-12 mb-8">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50"
+                      >
+                        <ChevronLeft className="w-5 h-5 text-gray-700" />
+                      </button>
+                      <span className="px-4 font-bold text-gray-900">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="p-2 rounded-full border border-gray-300 bg-white hover:bg-orange-50 disabled:opacity-50"
+                      >
+                        <ChevronRight className="w-5 h-5 text-gray-700" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <FadeIn>
+                  <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed text-center">
+                    <div className="bg-gray-100 p-4 rounded-full mb-4">
+                      <SearchX className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      No products found
+                    </h3>
+                    <p className="text-gray-500 mt-2 max-w-sm">
+                      We couldn't find any{" "}
+                      {thicknessQuery ? `${thicknessQuery} ` : ""}
+                      {searchQuery ? `${searchQuery} ` : ""}
+                      products in{" "}
+                      {selectedCategory === "All"
+                        ? "catalog"
+                        : selectedCategory}
+                      .
+                    </p>
+                    <button
+                      onClick={() => {
+                        if (selectedCategory === "Laminates") {
+                          router.push("/products?category=Laminates");
+                        } else {
+                          handleCategoryClick("All");
+                        }
+                      }}
+                      className="mt-6 text-primary font-semibold hover:underline"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                </FadeIn>
+              )}
+            </FadeIn>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

@@ -37,41 +37,47 @@ export default async function ProductPage({ params }: Props) {
     return notFound();
   }
 
+  // --- SPECIAL LAYOUT LOGIC FOR ADHESIVES ---
+  const isAdhesive = product.category === "Adhesive";
+
+  // Grid Layout: Adhesives get 5 columns (smaller cards), others get 3.
+  const gridClass = isAdhesive
+    ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4" // Compact Grid
+    : "grid grid-cols-1 md:grid-cols-3 gap-6"; // Standard Grid
+
+  // Text Sizes: Adhesives get smaller text to fit the smaller cards.
+  const titleSize = isAdhesive ? "text-lg md:text-xl" : "text-2xl";
+  const paddingSize = isAdhesive ? "p-4" : "p-6";
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar />
 
       <div className="container mx-auto px-4 py-12">
-        {/* Back Button */}
+        {/* Back Button - FIXED: Now goes back to the specific Category */}
         <FadeIn direction="right">
           <Link
-            href="/products"
+            href={`/products?category=${encodeURIComponent(product.category)}`}
             className="inline-flex items-center text-gray-500 hover:text-primary mb-8 transition"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Catalog
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to {product.category}
           </Link>
         </FadeIn>
 
-        {/* PAGE HEADER (UPDATED STYLE) */}
+        {/* PAGE HEADER */}
         <div className="text-center mb-16 max-w-5xl mx-auto">
           <FadeIn delay={0.1}>
-            {/* Category Label */}
             <span className="text-gray-500 font-bold tracking-[0.2em] uppercase text-xs mb-4 block">
               — {product.category} —
             </span>
 
-            {/* STYLISH STRIPE HEADING */}
             <div className="relative inline-block mb-8">
-              {/* The Yellow Background Stripe */}
               <div className="absolute inset-0 bg-accent transform -skew-x-12 shadow-lg rounded-sm"></div>
-
-              {/* The Text */}
               <h1 className="relative z-10 text-3xl md:text-5xl font-black text-gray-900 px-8 py-3 uppercase tracking-wider leading-tight">
                 {product.name}
               </h1>
             </div>
 
-            {/* Brand Badge */}
             <div className="block">
               <div className="inline-block bg-white border border-gray-200 text-gray-800 px-6 py-2 rounded-full font-semibold shadow-sm mb-8">
                 Brand:{" "}
@@ -88,10 +94,10 @@ export default async function ProductPage({ params }: Props) {
           </FadeIn>
         </div>
 
-        {/* --- FULL WIDTH VARIANTS GRID --- */}
+        {/* --- DYNAMIC VARIANTS GRID --- */}
         <FadeIn delay={0.3}>
           {product.variants && product.variants.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={gridClass}>
               {/* @ts-ignore */}
               {product.variants.map((variant: any, idx: number) => (
                 <Link
@@ -101,7 +107,7 @@ export default async function ProductPage({ params }: Props) {
                   }/variant?name=${encodeURIComponent(
                     variant.name || variant
                   )}`}
-                  className="group relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] flex flex-col shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden"
+                  className={`group relative bg-white border border-gray-200 rounded-2xl w-full aspect-[3/4] flex flex-col shadow-sm hover:shadow-2xl hover:border-accent transition-all duration-300 cursor-pointer overflow-hidden`}
                 >
                   {/* 1. FULL BACKGROUND IMAGE */}
                   <div className="absolute inset-0 w-full h-full bg-gray-200">
@@ -122,14 +128,19 @@ export default async function ProductPage({ params }: Props) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition duration-300" />
 
                   {/* 3. TEXT CONTENT */}
-                  <div className="absolute bottom-0 w-full p-6 flex flex-col items-center justify-end z-10 text-center h-full">
-                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-accent transition leading-tight drop-shadow-md">
+                  <div
+                    className={`absolute bottom-0 w-full ${paddingSize} flex flex-col items-center justify-end z-10 text-center h-full`}
+                  >
+                    <h3
+                      className={`${titleSize} font-bold text-white mb-2 group-hover:text-accent transition leading-tight drop-shadow-md`}
+                    >
                       {variant.name || variant}
                     </h3>
+
+                    {/* Hide the "Click to view" button on small cards to reduce clutter, show only on hover */}
                     <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-300">
-                      <span className="text-xs font-bold text-gray-900 flex items-center bg-white px-5 py-2 rounded-full shadow-lg">
-                        Click to view Sizes, Thickness & Price{" "}
-                        <ArrowRight className="w-3 h-3 ml-1" />
+                      <span className="text-[10px] md:text-xs font-bold text-gray-900 flex items-center bg-white px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                        View Prices <ArrowRight className="w-3 h-3 ml-1" />
                       </span>
                     </div>
                   </div>
@@ -137,7 +148,7 @@ export default async function ProductPage({ params }: Props) {
               ))}
             </div>
           ) : (
-            /* FALLBACK: Standard Description if no variants exist */
+            /* FALLBACK */
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center max-w-3xl mx-auto">
               <p className="text-gray-600 text-lg mb-8 leading-relaxed">
                 Premium quality {product.name.toLowerCase()} from{" "}

@@ -51,7 +51,7 @@ export const ADHESIVE_PRODUCTS: Product[] = [
     ],
   },
   {
-    id: 20,
+    id: 22,
     name: "Grippo",
     category: "Adhesive",
     brand: "Pidilite",

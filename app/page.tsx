@@ -16,7 +16,6 @@ import {
   Smile,
   PenTool,
   Star,
-  // --- NEW ICONS ---
   ShieldCheck,
   Award,
   Truck,
@@ -102,13 +101,13 @@ export default function Home() {
           style={{ backgroundImage: "url('/main_shop_image.jpeg')" }}
         />
 
-        {/* Modern Gradient Overlay (Darker at bottom for text readability) */}
+        {/* Modern Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90 z-10" />
 
         <div className="container mx-auto px-4 relative z-20 pt-20">
           <div className="max-w-5xl mx-auto text-center">
             <FadeIn delay={0.2}>
-              {/* Premium Badge for "Wholesale Prices" */}
+              {/* Premium Badge */}
               <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mb-8 shadow-2xl">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
@@ -119,7 +118,7 @@ export default function Home() {
                 </span>
               </div>
 
-              {/* Main Title - Big, Bold, Modern */}
+              {/* Main Title */}
               <h1 className="text-4xl md:text-7xl lg:text-8xl font-black text-orange-500 mb-6 md:mb-8 tracking-tighter leading-tight drop-shadow-xl">
                 Vishwakarma <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-red-600">
@@ -129,7 +128,7 @@ export default function Home() {
             </FadeIn>
 
             <FadeIn delay={0.4}>
-              {/* Subtitle Box with Glass Effect */}
+              {/* Subtitle Box */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-4 md:p-10 rounded-2xl md:rounded-3xl mb-8 md:mb-12 max-w-3xl mx-auto shadow-2xl ring-1 ring-white/10">
                 <p className="text-lg md:text-2xl text-gray-200 leading-relaxed font-light">
                   Authorized dealers of{" "}
@@ -191,19 +190,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 1. TRUST BAR (UPDATED) */}
+      {/* 1. TRUST BAR */}
       <section className="py-10 border-b border-gray-100 bg-white shadow-sm relative z-20 -mt-8 mx-4 md:mx-auto md:max-w-6xl rounded-xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-6">
           {TRUST_BADGES.map((item, idx) => (
             <FadeIn key={idx} delay={idx * 0.1}>
               <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-gray-50 transition duration-300">
-                {/* Icon Box */}
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center ${item.bg} ${item.color}`}
                 >
                   <item.icon className="w-6 h-6" strokeWidth={2} />
                 </div>
-                {/* Text */}
                 <div className="flex flex-col text-left">
                   <span className="font-bold text-gray-900 leading-tight">
                     {item.label}
@@ -230,7 +227,7 @@ export default function Home() {
           {CATEGORIES.map((cat, idx) => (
             <FadeIn key={cat.id} delay={idx * 0.05}>
               <Link
-                href={`/products?search=${cat.name}`}
+                href={`/products?category=${encodeURIComponent(cat.name)}`}
                 className="group cursor-pointer flex flex-col items-center text-center w-40 md:w-48"
               >
                 <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-44 md:h-44 rounded-full bg-white mb-6 overflow-hidden border-4 border-white shadow-sm group-hover:border-primary group-hover:shadow-xl transition-all duration-300 relative">
@@ -266,7 +263,6 @@ export default function Home() {
                   className="group w-full sm:w-56 md:w-64 block"
                 >
                   <div className="relative bg-white border border-orange-100 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition cursor-pointer aspect-[4/3] md:aspect-[3/4]">
-                    {/* Background Image */}
                     <div className="absolute inset-0 bg-orange-50/50">
                       <img
                         src={brand.image}
@@ -275,7 +271,6 @@ export default function Home() {
                       />
                     </div>
 
-                    {/* VIP LABEL */}
                     <div className="absolute top-8 left-0 right-0 z-10 flex flex-col items-center">
                       <span className="text-2xl font-black text-orange-500 tracking-[0.2em] drop-shadow-sm">
                         VIP{" "}
@@ -285,14 +280,12 @@ export default function Home() {
                       </span>
                     </div>
 
-                    {/* BRAND NAME */}
                     <div className="absolute bottom-16 left-0 right-0 z-10 px-4 flex justify-center">
                       <h3 className="text-3xl md:text-4xl font-black text-gray-900 uppercase text-center leading-none group-hover:text-primary transition drop-shadow-md">
                         {brand.name}
                       </h3>
                     </div>
 
-                    {/* View Collection */}
                     <div className="absolute bottom-6 left-0 right-0 flex justify-center text-xs text-gray-500 font-bold group-hover:text-accent transition z-10">
                       View Collection <ArrowRight className="w-3 h-3 ml-1" />
                     </div>
@@ -332,10 +325,13 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {FEATURED_PRODUCTS.slice(0, 4).map((product, idx) => {
-              // --- UPDATED LINK LOGIC FOR FLUSH DOORS & LAMINATES ---
               let targetLink = `/products/${product.id}`;
+
+              // --- UPDATE: EXCEPTION FOR GRIPPO ---
+              // If it's Laminates/Flush Doors OR specifically "Grippo", go direct to variant.
               if (
-                ["Flush Doors", "Laminates"].includes(product.category) &&
+                (["Flush Doors", "Laminates"].includes(product.category) ||
+                  product.name === "Grippo") &&
                 product.variants &&
                 product.variants.length > 0
               ) {
@@ -345,7 +341,6 @@ export default function Home() {
                   product.id
                 }/variant?name=${encodeURIComponent(vName)}`;
               }
-              // ------------------------------------------------------
 
               return (
                 <FadeIn key={product.id} delay={idx * 0.1}>
@@ -436,7 +431,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STICKY MOBILE CTA */}
       <div className="fixed bottom-4 left-4 right-4 z-50 lg:hidden">
         <a href="tel:+919845575885">
           <button className="w-full bg-orange-500 text-white py-4 rounded-full font-bold text-lg shadow-xl hover:bg-orange-600 transition">

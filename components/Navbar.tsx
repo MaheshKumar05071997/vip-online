@@ -88,7 +88,7 @@ export default function Navbar() {
           </span>
         </div>
 
-        {/* Main Navbar */}
+        {/* Main Navbar Container */}
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
@@ -97,7 +97,7 @@ export default function Navbar() {
             VIP<span className="text-accent">ONLINE</span>
           </Link>
 
-          {/* Search Bar - UPDATED TO FUNCTIONAL FORM */}
+          {/* Desktop Search Bar (Hidden on Mobile) */}
           <form
             onSubmit={handleSearch}
             className="hidden md:flex flex-1 max-w-lg mx-8 relative"
@@ -117,25 +117,6 @@ export default function Navbar() {
             </button>
           </form>
 
-          {/* Mobile Search Bar (Visible only on mobile) */}
-          <div className="md:hidden px-4 pb-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="w-full border border-gray-300 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:border-primary bg-gray-50"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="absolute left-3 top-2.5 text-gray-400"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
-
           {/* Right Icons */}
           <div className="flex items-center space-x-4 text-gray-700">
             <Link
@@ -151,8 +132,26 @@ export default function Navbar() {
               <Phone className="w-4 h-4 mr-2" />
               <span className="text-sm font-bold">Enquire</span>
             </a>
-            {/* Hamburger Menu Removed as requested */}
           </div>
+        </div>
+
+        {/* Mobile Search Bar (Moved OUTSIDE flex container to be Full Width) */}
+        <div className="md:hidden px-4 pb-4 w-full">
+          <form onSubmit={handleSearch} className="relative w-full">
+            <input
+              type="text"
+              placeholder="Search products..."
+              className="w-full border border-gray-300 rounded-lg py-3 px-4 pl-10 focus:outline-none focus:border-primary bg-gray-50 shadow-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="absolute left-3 top-3.5 text-gray-400"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </form>
         </div>
 
         {/* Contractor Banner */}
