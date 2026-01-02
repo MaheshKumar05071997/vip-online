@@ -95,7 +95,7 @@ export default function Home() {
       </div>
 
       {/* --- NEW & TRENDY HERO SECTION --- */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[70vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Background Image with Fixed Position for Parallax Feel */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0 bg-fixed"
@@ -120,7 +120,7 @@ export default function Home() {
               </div>
 
               {/* Main Title - Big, Bold, Modern */}
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-orange-500 mb-8 tracking-tighter leading-[1.1] drop-shadow-xl">
+              <h1 className="text-4xl md:text-7xl lg:text-8xl font-black text-orange-500 mb-6 md:mb-8 tracking-tighter leading-tight drop-shadow-xl">
                 Vishwakarma <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-red-600">
                   Interior Products
@@ -130,7 +130,7 @@ export default function Home() {
 
             <FadeIn delay={0.4}>
               {/* Subtitle Box with Glass Effect */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 md:p-10 rounded-3xl mb-12 max-w-3xl mx-auto shadow-2xl ring-1 ring-white/10">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-4 md:p-10 rounded-2xl md:rounded-3xl mb-8 md:mb-12 max-w-3xl mx-auto shadow-2xl ring-1 ring-white/10">
                 <p className="text-lg md:text-2xl text-gray-200 leading-relaxed font-light">
                   Authorized dealers of{" "}
                   <strong className="text-white font-semibold">Hafele</strong>,{" "}
@@ -161,6 +161,32 @@ export default function Home() {
                 </Link>
               </div>
             </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* MOBILE STATS BAR */}
+      <section className="lg:hidden bg-white border-t border-b border-orange-100 py-6">
+        <div className="grid grid-cols-2 gap-6 text-center px-6">
+          <div>
+            <Tag className="mx-auto w-7 h-7 text-orange-500 mb-1" />
+            <p className="font-bold text-gray-900">1000+</p>
+            <p className="text-xs text-gray-500">Brands</p>
+          </div>
+          <div>
+            <Package className="mx-auto w-7 h-7 text-orange-500 mb-1" />
+            <p className="font-bold text-gray-900">25,000+</p>
+            <p className="text-xs text-gray-500">Products</p>
+          </div>
+          <div>
+            <Smile className="mx-auto w-7 h-7 text-orange-500 mb-1" />
+            <p className="font-bold text-gray-900">3,000+</p>
+            <p className="text-xs text-gray-500">Customers</p>
+          </div>
+          <div>
+            <PenTool className="mx-auto w-7 h-7 text-orange-500 mb-1" />
+            <p className="font-bold text-gray-900">1000+</p>
+            <p className="text-xs text-gray-500">Architects</p>
           </div>
         </div>
       </section>
@@ -200,14 +226,14 @@ export default function Home() {
           </h2>
         </FadeIn>
 
-        <div className="flex flex-wrap justify-center gap-10 md:gap-14">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap justify-center gap-6 md:gap-14">
           {CATEGORIES.map((cat, idx) => (
             <FadeIn key={cat.id} delay={idx * 0.05}>
               <Link
                 href={`/products?search=${cat.name}`}
                 className="group cursor-pointer flex flex-col items-center text-center w-40 md:w-48"
               >
-                <div className="w-40 h-40 md:w-44 md:h-44 rounded-full bg-white mb-6 overflow-hidden border-4 border-white shadow-sm group-hover:border-primary group-hover:shadow-xl transition-all duration-300 relative">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-44 md:h-44 rounded-full bg-white mb-6 overflow-hidden border-4 border-white shadow-sm group-hover:border-primary group-hover:shadow-xl transition-all duration-300 relative">
                   <img
                     src={cat.image}
                     alt={cat.name}
@@ -239,7 +265,7 @@ export default function Home() {
                   href={`/products?search=${brand.name}`}
                   className="group w-full sm:w-56 md:w-64 block"
                 >
-                  <div className="relative bg-white border border-orange-100 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition cursor-pointer aspect-[3/4]">
+                  <div className="relative bg-white border border-orange-100 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition cursor-pointer aspect-[4/3] md:aspect-[3/4]">
                     {/* Background Image */}
                     <div className="absolute inset-0 bg-orange-50/50">
                       <img
@@ -409,6 +435,15 @@ export default function Home() {
           </FadeIn>
         </div>
       </section>
+
+      {/* STICKY MOBILE CTA */}
+      <div className="fixed bottom-4 left-4 right-4 z-50 lg:hidden">
+        <a href="tel:+919845575885">
+          <button className="w-full bg-orange-500 text-white py-4 rounded-full font-bold text-lg shadow-xl hover:bg-orange-600 transition">
+            Call Now
+          </button>
+        </a>
+      </div>
 
       <Footer />
     </main>
