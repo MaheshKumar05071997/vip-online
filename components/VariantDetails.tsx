@@ -117,8 +117,8 @@ export default function VariantDetails({
     if (isFormOpen) {
       setTimeout(() => {
         try {
-          if (!window.recaptchaVerifierVariant) {
-            window.recaptchaVerifierVariant = new RecaptchaVerifier(
+          if (!(window as any).recaptchaVerifierVariant) {
+            (window as any).recaptchaVerifierVariant = new RecaptchaVerifier(
               auth,
               "recaptcha-container-variant",
               {

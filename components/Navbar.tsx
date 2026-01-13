@@ -50,10 +50,10 @@ export default function Navbar() {
 
   // 1. Initialize Recaptcha when the modal opens
   useEffect(() => {
-    if (isFormOpen && !window.recaptchaVerifier) {
+    if (isFormOpen && !(window as any).recaptchaVerifier) {
       setTimeout(() => {
         try {
-          window.recaptchaVerifier = new RecaptchaVerifier(
+          (window as any).recaptchaVerifier = new RecaptchaVerifier(
             auth,
             "recaptcha-container",
             {

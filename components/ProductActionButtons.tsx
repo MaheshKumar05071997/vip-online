@@ -42,8 +42,8 @@ export default function ProductActionButtons({ productName }: Props) {
     if (isFormOpen) {
       setTimeout(() => {
         try {
-          if (!window.recaptchaVerifierProduct) {
-            window.recaptchaVerifierProduct = new RecaptchaVerifier(
+          if (!(window as any).recaptchaVerifierProduct) {
+            (window as any).recaptchaVerifierProduct = new RecaptchaVerifier(
               auth,
               "recaptcha-container-product", // Unique ID
               {
