@@ -81,7 +81,7 @@ export default function Footer() {
     const phoneNumber = "+91" + formData.phone;
 
     try {
-      const appVerifier = window.recaptchaVerifierFooter;
+      const appVerifier = (window as any).recaptchaVerifierFooter;
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         phoneNumber,
