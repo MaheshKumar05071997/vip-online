@@ -358,9 +358,11 @@ export default function Home() {
               ) {
                 // @ts-ignore
                 const vName = product.variants[0].name || product.variants[0];
+
+                // FIXED: Wrapped vName in String() to satisfy TypeScript
                 targetLink = `/products/${
                   product.id
-                }/variant?name=${encodeURIComponent(vName)}`;
+                }/variant?name=${encodeURIComponent(String(vName))}`;
               }
 
               return (
