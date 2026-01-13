@@ -1,4 +1,4 @@
-// --- 1. DEFINITIONS (Previously in data/types.ts) ---
+// --- 1. DEFINITIONS ---
 export interface Variant {
   name: string;
   image: string;
@@ -18,7 +18,7 @@ export interface Product {
   image: string;
   variants?: Variant[];
   specs?: { key: string; value: string }[];
-  variantName?: string; // Helper for catalog
+  variantName?: string;
 }
 
 export interface Category {
@@ -41,7 +41,7 @@ export type LaminateBrandConfig = {
   thicknesses: string[];
 };
 
-// --- 2. CONFIG DATA (Previously in data/laminate_brands.ts) ---
+// --- 2. CONFIG DATA ---
 export const LAMINATE_BRANDS_CONFIG: LaminateBrandConfig[] = [
   {
     name: "Merino",
@@ -65,7 +65,7 @@ export const LAMINATE_BRANDS_CONFIG: LaminateBrandConfig[] = [
   },
 ];
 
-// --- 3. CATEGORIES & BRANDS (Previously in data/categories.ts) ---
+// --- 3. CATEGORIES & BRANDS ---
 export const CATEGORIES: Category[] = [
   { id: 1, name: "Plywoods", image: "/ShopByCategory/plywood.jpg" },
   { id: 10, name: "Block Boards", image: "/ShopByCategory/block_boards.png" },
@@ -109,7 +109,7 @@ export const BRAND_DESCRIPTIONS: Record<string, string> = {
   Hettich: "Hettich is one of the world's largest manufacturers...",
 };
 
-// --- 4. TESTIMONIALS (Previously in data/testimonials.ts) ---
+// --- 4. TESTIMONIALS ---
 export const TESTIMONIALS: Testimonial[] = [
   {
     id: 1,
@@ -141,5 +141,5 @@ export const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-// --- 5. PRODUCTS (Empty now, as you are using CMS) ---
+// --- 5. PRODUCTS (Empty now, using CMS) ---
 export const FEATURED_PRODUCTS: Product[] = [];

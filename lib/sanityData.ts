@@ -1,5 +1,5 @@
 import { client } from "@/sanity/lib/client";
-import { Product } from "@/data/types";
+import { Product } from "@/app/data";
 import { urlFor } from "@/sanity/lib/image";
 
 export async function getProducts(): Promise<Product[]> {
