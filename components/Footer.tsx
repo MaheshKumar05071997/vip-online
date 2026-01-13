@@ -50,19 +50,16 @@ export default function Footer() {
   // 1. Initialize Recaptcha when the modal opens (Unique ID for Footer)
   useEffect(() => {
     if (isFormOpen) {
-      // Small delay to ensure DOM element exists
       setTimeout(() => {
         try {
-          // Use a specific property for footer recaptcha to avoid conflict with Navbar
-          if (!window.recaptchaVerifierFooter) {
-            window.recaptchaVerifierFooter = new RecaptchaVerifier(
+          // FIXED: Added (window as any)
+          if (!(window as any).recaptchaVerifierFooter) {
+            (window as any).recaptchaVerifierFooter = new RecaptchaVerifier(
               auth,
-              "recaptcha-container-footer", // Unique ID for footer
+              "recaptcha-container-footer",
               {
                 size: "invisible",
-                callback: () => {
-                  // reCAPTCHA solved
-                },
+                callback: () => {},
               }
             );
           }
