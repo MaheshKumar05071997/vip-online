@@ -1,8 +1,7 @@
 "use client";
 
 import FadeIn from "@/components/FadeIn";
-import { Product } from "@/data/types";
-import { LAMINATE_BRANDS_CONFIG } from "@/data/laminate_brands";
+import { Product, LAMINATE_BRANDS_CONFIG } from "@/app/data";
 import { useState } from "react";
 import Link from "next/link";
 import {

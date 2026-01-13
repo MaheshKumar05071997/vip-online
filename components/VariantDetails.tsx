@@ -1,7 +1,7 @@
 "use client";
 
 import FadeIn from "@/components/FadeIn";
-import { Product } from "@/data/types";
+import { Product } from "@/app/data";
 import {
   ArrowLeft,
   Phone,
