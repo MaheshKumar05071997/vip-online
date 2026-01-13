@@ -21,19 +21,15 @@ export const CATEGORIES: Category[] = [
     name: "Laminates",
     image: "/ShopByCategory/laminates.png",
   },
-  {
-    id: 3,
-    name: "Kitchen Fittings",
-    image: "/ShopByCategory/kitchen_fittings.png",
-  },
+
   {
     id: 4,
-    name: "High-End Locks",
+    name: "Digital Locks",
     image: "/ShopByCategory/highend_locks.png",
   },
   {
     id: 5,
-    name: "Safes & Security",
+    name: "Secured Safes",
     image: "/ShopByCategory/safes.jpg",
   },
   {

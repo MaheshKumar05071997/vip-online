@@ -1,6 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 html {
   scroll-behavior: smooth;
+}
+
+/* --- CENTRALIZED BUTTON STYLING --- */
+@layer components {
+  .btn-capsule {
+    @apply rounded-full; /* This forces the capsule shape */
+  }
+}
+
+/* --- ADD THIS AT THE BOTTOM --- */
+@keyframes rollLight {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
 }

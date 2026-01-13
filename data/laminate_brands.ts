@@ -8,7 +8,7 @@ export const LAMINATE_BRANDS_CONFIG: LaminateBrandConfig[] = [
   {
     name: "Merino",
     // You can change this image to a logo or a representative product image
-    image: "/merino/Page10_Img2_Unmatched.jpeg", 
+    image: "/merino/Page10_Img2_Unmatched.jpeg",
     thicknesses: ["1.0mm", "0.7mm", "0.8mm"],
   },
   {

@@ -1,26 +1,28 @@
 export interface Variant {
   name: string;
-  image: string;
-  price?: string;
-  originalPrice?: string;
+  image: string; // We will use the image URL string here
+  price?: number; // Sanity schema has this as number
+  originalPrice?: number;
   thickness?: string[];
   sizes?: string[];
   specs?: Record<string, string>;
+  priceList?: Record<string, { price: string; originalPrice?: string }>;
 }
 
 export interface Product {
-  id: number;
+  id: string; // CHANGED from number to string
   name: string;
-  category: string;
+  category: string; // We will fetch the category *title*
   brand: string;
   image: string;
   variants?: Variant[];
+  specs?: { key: string; value: string }[];
 }
 
 export interface Category {
-  id: number;
+  id: string;
   name: string;
-  image: string;
+  image?: string;
 }
 
 export interface Testimonial {

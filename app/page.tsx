@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
+import { getProducts } from "@/lib/sanity"; // Import the new fetcher
 import {
   FEATURED_BRANDS,
   CATEGORIES,
@@ -20,10 +21,18 @@ import {
   Award,
   Truck,
   Banknote,
+  MapPin, // <--- ADD THIS
 } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
+  // --- Add this function to scroll without changing URL ---
+  const scrollToLocation = () => {
+    const element = document.getElementById("our-location");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   // --- TRUST BAR CONFIG ---
   const TRUST_BADGES = [
     {
@@ -104,7 +113,8 @@ export default function Home() {
         {/* Modern Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90 z-10" />
 
-        <div className="container mx-auto px-4 relative z-20 pt-20">
+        {/* Added pb-24 to fix button touching border in mobile */}
+        <div className="container mx-auto px-4 relative z-20 pt-20 pb-24 md:pb-0">
           <div className="max-w-5xl mx-auto text-center">
             <FadeIn delay={0.2}>
               {/* Premium Badge */}
@@ -132,9 +142,11 @@ export default function Home() {
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-4 md:p-10 rounded-2xl md:rounded-3xl mb-8 md:mb-12 max-w-3xl mx-auto shadow-2xl ring-1 ring-white/10">
                 <p className="text-lg md:text-2xl text-gray-200 leading-relaxed font-light">
                   Authorized dealers of{" "}
-                  <strong className="text-white font-semibold">Hafele</strong>,{" "}
-                  <strong className="text-white font-semibold">Blum</strong>,
-                  and{" "}
+                  <strong className="text-white font-semibold">Ebco</strong>,{" "}
+                  <strong className="text-white font-semibold">
+                    Century Ply
+                  </strong>
+                  , and{" "}
                   <strong className="text-white font-semibold">Greenply</strong>
                   .
                   <span className="block mt-4 text-base md:text-lg text-gray-400">
@@ -145,19 +157,27 @@ export default function Home() {
               </div>
             </FadeIn>
 
-            <FadeIn delay={0.6}>
-              <div className="flex flex-col sm:flex-row justify-center gap-5">
-                <Link href="/products" className="group">
-                  <button className="w-full sm:w-auto bg-white text-black px-10 py-5 rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2">
+            <FadeIn delay={0.2}>
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
+                <Link href="/products" className="group w-full sm:w-auto">
+                  <button className="w-full bg-white text-black px-10 py-5 rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2">
                     Explore Catalog
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </Link>
-                <Link href="#our-location">
-                  <button className="w-full sm:w-auto px-10 py-5 rounded-full font-bold text-lg text-white border border-white/20 hover:bg-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-1">
-                    Contact Us
-                  </button>
-                </Link>
+
+                {/* Shop Location - Aligned Capsule with Animation */}
+                <button
+                  onClick={scrollToLocation}
+                  className="group relative w-full sm:w-auto bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-3 shadow-lg"
+                >
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  <MapPin className="w-5 h-5 text-red-500 group-hover:animate-bounce" />
+                  <span>Store Location</span>
+                </button>
               </div>
             </FadeIn>
           </div>
@@ -180,7 +200,7 @@ export default function Home() {
           <div>
             <Smile className="mx-auto w-7 h-7 text-orange-500 mb-1" />
             <p className="font-bold text-gray-900">3,000+</p>
-            <p className="text-xs text-gray-500">Customers</p>
+            <p className="text-xs text-gray-500">Happy Clients</p>
           </div>
           <div>
             <PenTool className="mx-auto w-7 h-7 text-orange-500 mb-1" />
@@ -190,8 +210,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 1. TRUST BAR */}
-      <section className="py-10 border-b border-gray-100 bg-white shadow-sm relative z-20 -mt-8 mx-4 md:mx-auto md:max-w-6xl rounded-xl">
+      {/* TRUST BAR - FIXED MARGIN: mt-4 on mobile, -mt-8 on desktop */}
+      <section className="py-10 border-b border-gray-100 bg-white shadow-sm relative z-20 mt-4 md:-mt-8 mx-4 md:mx-auto md:max-w-6xl rounded-xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-6">
           {TRUST_BADGES.map((item, idx) => (
             <FadeIn key={idx} delay={idx * 0.1}>
@@ -244,6 +264,17 @@ export default function Home() {
             </FadeIn>
           ))}
         </div>
+        {/* --- PASTE HERE --- */}
+        <FadeIn delay={0.4}>
+          <div className="flex justify-center mt-12">
+            <Link href="/products">
+              <button className="bg-orange-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-600 transition shadow-lg hover:shadow-orange-200">
+                View all
+              </button>
+            </Link>
+          </div>
+        </FadeIn>
+        {/* ------------------ */}
       </section>
 
       {/* 4. SHOP FROM LEADING BRANDS */}
@@ -251,59 +282,49 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <FadeIn>
             <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center md:text-left">
-              Shop From Leading Brands
+              Select From Multiple Leading Brands
             </h2>
           </FadeIn>
 
           <div className="flex flex-wrap justify-center gap-6">
             {FEATURED_BRANDS.map((brand, idx) => (
-              <FadeIn key={idx} delay={idx * 0.1}>
-                <Link
-                  href={`/products?search=${brand.name}`}
-                  className="group w-full sm:w-56 md:w-64 block"
-                >
-                  <div className="relative bg-white border border-orange-100 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition cursor-pointer aspect-[4/3] md:aspect-[3/4]">
-                    <div className="absolute inset-0 bg-orange-50/50">
-                      <img
-                        src={brand.image}
-                        alt={brand.name}
-                        className="w-full h-full object-cover opacity-20 group-hover:opacity-30 group-hover:scale-105 transition duration-700"
-                      />
-                    </div>
-
-                    <div className="absolute top-8 left-0 right-0 z-10 flex flex-col items-center">
-                      <span className="text-2xl font-black text-orange-500 tracking-[0.2em] drop-shadow-sm">
-                        VIP{" "}
-                        <span className="text-gray-300 text-lg align-middle">
-                          X
-                        </span>
-                      </span>
-                    </div>
-
-                    <div className="absolute bottom-16 left-0 right-0 z-10 px-4 flex justify-center">
-                      <h3 className="text-3xl md:text-4xl font-black text-gray-900 uppercase text-center leading-none group-hover:text-primary transition drop-shadow-md">
-                        {brand.name}
-                      </h3>
-                    </div>
-
-                    <div className="absolute bottom-6 left-0 right-0 flex justify-center text-xs text-gray-500 font-bold group-hover:text-accent transition z-10">
-                      View Collection <ArrowRight className="w-3 h-3 ml-1" />
-                    </div>
+              /* REMOVED <FadeIn> WRAPPER TO FIX MOBILE VISIBILITY BUG */
+              <Link
+                key={idx}
+                href={`/products?search=${brand.name}`}
+                className="group w-full sm:w-56 md:w-64 block"
+              >
+                <div className="relative bg-white border border-orange-100 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition cursor-pointer aspect-[4/3] md:aspect-[3/4]">
+                  <div className="absolute inset-0 bg-orange-50/50">
+                    <img
+                      src={brand.image}
+                      alt={brand.name}
+                      className="w-full h-full object-cover opacity-20 group-hover:opacity-30 group-hover:scale-105 transition duration-700"
+                    />
                   </div>
-                </Link>
-              </FadeIn>
+
+                  <div className="absolute top-8 left-0 right-0 z-10 flex flex-col items-center">
+                    <span className="text-2xl font-black text-orange-500 tracking-[0.2em] drop-shadow-sm">
+                      VIP{" "}
+                      <span className="text-gray-300 text-lg align-middle">
+                        X
+                      </span>
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-16 left-0 right-0 z-10 px-4 flex justify-center">
+                    <h3 className="text-3xl md:text-4xl font-black text-gray-900 uppercase text-center leading-none group-hover:text-primary transition drop-shadow-md">
+                      {brand.name}
+                    </h3>
+                  </div>
+
+                  <div className="absolute bottom-6 left-0 right-0 flex justify-center text-xs text-gray-500 font-bold group-hover:text-accent transition z-10">
+                    View Collection <ArrowRight className="w-3 h-3 ml-1" />
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
-
-          <FadeIn delay={0.4}>
-            <div className="flex justify-center mt-10">
-              <Link href="/products">
-                <button className="bg-orange-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-600 transition shadow-lg hover:shadow-orange-200">
-                  View all
-                </button>
-              </Link>
-            </div>
-          </FadeIn>
         </div>
       </section>
 
@@ -363,7 +384,7 @@ export default function Home() {
                         <p className="text-gray-500 text-sm mb-4">
                           {product.category}
                         </p>
-                        <button className="w-full bg-orange-50 text-gray-800 py-2 rounded-lg font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
+                        <button className="w-full bg-orange-50 text-gray-800 py-2 btn-capsule font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
                           View Details
                         </button>
                       </div>
@@ -430,14 +451,6 @@ export default function Home() {
           </FadeIn>
         </div>
       </section>
-
-      <div className="fixed bottom-4 left-4 right-4 z-50 lg:hidden">
-        <a href="tel:+919845575885">
-          <button className="w-full bg-orange-500 text-white py-4 rounded-full font-bold text-lg shadow-xl hover:bg-orange-600 transition">
-            Call Now
-          </button>
-        </a>
-      </div>
 
       <Footer />
     </main>

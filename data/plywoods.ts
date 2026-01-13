@@ -15,6 +15,27 @@ export const PLYWOOD_PRODUCTS: Product[] = [
         originalPrice: "120",
         thickness: ["6mm", "9mm", "12mm", "16mm", "19mm"],
         sizes: ["8'x4'", "7'x4'", "6'x4'"],
+        // --- HERE IS THE MAGIC FOR SIZE + THICKNESS ---
+        priceList: {
+          // Format: "THICKNESS_SIZE"
+
+          // 19mm Prices
+          "19mm_8'x4'": { price: "105", originalPrice: "125" },
+          "19mm_7'x4'": { price: "95", originalPrice: "110" },
+          "19mm_6'x4'": { price: "85", originalPrice: "100" },
+
+          // 12mm Prices (Different from 19mm!)
+          "12mm_8'x4'": { price: "80", originalPrice: "95" },
+          "12mm_7'x4'": { price: "70", originalPrice: "85" },
+          "12mm_6'x4'": { price: "60", originalPrice: "75" },
+
+          // 9mm Prices
+          "9mm_6'x4'": { price: "180", originalPrice: "200" },
+          // 6mm Prices
+          "6mm_8'x4'": { price: "55", originalPrice: "65" },
+          // You can skip sizes if you want them to use the default 'price' above
+        },
+        // -----------------------------------------------
         specs: {
           Grade: "MR Grade (IS:303)",
           Warranty: "5 Years",
@@ -130,7 +151,7 @@ export const PLYWOOD_PRODUCTS: Product[] = [
     id: 10,
     name: "Century Plywood",
     category: "Plywoods",
-    brand: "Century Ply",
+    brand: "CenturyPly",
     image: "/centuryply-logo.png",
     variants: [
       {
