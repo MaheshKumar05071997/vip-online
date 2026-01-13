@@ -143,7 +143,7 @@ export default function VariantDetails({
     const phoneNumber = "+91" + formData.phone;
 
     try {
-      const appVerifier = window.recaptchaVerifierVariant;
+      const appVerifier = (window as any).recaptchaVerifierVariant;
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         phoneNumber,

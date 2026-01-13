@@ -68,7 +68,7 @@ export default function ProductActionButtons({ productName }: Props) {
     setIsSubmitting(true);
     const phoneNumber = "+91" + formData.phone;
     try {
-      const appVerifier = window.recaptchaVerifierProduct;
+      const appVerifier = (window as any).recaptchaVerifierProduct;
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         phoneNumber,

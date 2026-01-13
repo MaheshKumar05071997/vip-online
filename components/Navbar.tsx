@@ -81,7 +81,7 @@ export default function Navbar() {
     const phoneNumber = "+91" + formData.phone; // Hardcoded for India
 
     try {
-      const appVerifier = window.recaptchaVerifier;
+      const appVerifier = (window as any).recaptchaVerifier;
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         phoneNumber,
