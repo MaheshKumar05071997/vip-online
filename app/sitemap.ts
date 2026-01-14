@@ -1,32 +1,35 @@
-import { MetadataRoute } from 'next';
-import { FEATURED_PRODUCTS } from './data';
+import { MetadataRoute } from "next";
+import { getProducts } from "@/lib/sanityData"; // Fetch real data
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://vip-online.vercel.app'; // REPLACE THIS WITH YOUR ACTUAL DOMAIN LATER
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = "https://viponline.in"; // REPLACE WITH REAL DOMAIN
 
-  // 1. Static Pages
+  // 1. Fetch all products from Sanity
+  const products = await getProducts();
+
+  // 2. Define Static Pages
   const staticPages = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+      changeFrequency: "weekly" as const,
       priority: 1,
     },
     {
       url: `${baseUrl}/products`,
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      changeFrequency: "daily" as const,
       priority: 0.8,
     },
   ];
 
-  // 2. Generate Dynamic Product Pages
-  const productPages = FEATURED_PRODUCTS.map((product) => ({
+  // 3. Generate Dynamic Product URLs
+  const productUrls = products.map((product) => ({
     url: `${baseUrl}/products/${product.id}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    lastModified: new Date(), // If you have 'updatedAt' from Sanity, use that
+    changeFrequency: "weekly" as const,
     priority: 0.6,
   }));
 
-  return [...staticPages, ...productPages];
+  return [...staticPages, ...productUrls];
 }

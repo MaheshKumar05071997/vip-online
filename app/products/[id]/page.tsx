@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
-import { getProducts } from "@//lib/sanityData";
+import { getProducts } from "@/lib/sanityData";
 import { Phone, Check, ArrowLeft, Layers, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,20 +11,21 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
+// --- METADATA ---
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const products = await getProducts();
   const product = products.find((p) => p.id === id);
 
-  if (!product) {
-    return { title: "Product Not Found" };
-  }
+  if (!product) return { title: "Product Not Found" };
 
   return {
-    title: product.name,
-    description: `Buy ${product.name} at wholesale prices. Authorized dealer for ${product.brand}.`,
+    title: product.name, // Will become "Product Name | VIP Online" due to template
+    description: `Best price for ${product.name} by ${product.brand}. Category: ${product.category}. Bulk orders available.`,
     openGraph: {
       images: [product.image],
+      title: product.name,
+      description: `Buy ${product.name} at wholesale prices.`,
     },
   };
 }
@@ -34,9 +35,29 @@ export default async function ProductPage({ params }: Props) {
   const products = await getProducts();
   const product = products.find((p) => p.id === id);
 
-  if (!product) {
-    return notFound();
-  }
+  if (!product) return notFound();
+
+  // --- JSON-LD STRUCTURED DATA (THE SEO MAGIC) ---
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    image: product.image,
+    description: `Premium ${product.name} from ${product.brand}.`,
+    brand: {
+      "@type": "Brand",
+      name: product.brand,
+    },
+    category: product.category,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "INR",
+      availability: "https://schema.org/InStock",
+      price: "0", // 0 indicates "Call for Price" or handling ranges
+      url: `https://vip-online.vercel.app/products/${product.id}`,
+    },
+  };
+  // ------------------------------------------------
 
   const LARGE_CARD_CATEGORIES = ["Plywoods", "Block Boards", "Flush Doors"];
   const isLargeCategory = LARGE_CARD_CATEGORIES.includes(product.category);
@@ -49,14 +70,17 @@ export default async function ProductPage({ params }: Props) {
   const titleSize = useCompactGrid ? "text-lg md:text-xl" : "text-2xl";
   const paddingSize = useCompactGrid ? "p-4" : "p-6";
 
-  // --- FILTER: Hide "Standard" variants ---
-  // If the only variant is "Standard", this array becomes empty,
-  // triggering the fallback view below (which shows the Enquire button).
   const visibleVariants =
     product.variants?.filter((v: any) => v.name && v.name !== "Standard") || [];
 
   return (
     <main className="min-h-screen">
+      {/* INJECT JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <Navbar />
       <div className="container mx-auto px-4 py-12">
         <FadeIn direction="right">
@@ -67,6 +91,8 @@ export default async function ProductPage({ params }: Props) {
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to {product.category}
           </Link>
         </FadeIn>
+
+        {/* ... (Rest of your UI code remains exactly the same) ... */}
 
         <div className="text-center mb-16 max-w-5xl mx-auto">
           <FadeIn delay={0.1}>

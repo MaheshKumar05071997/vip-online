@@ -12,37 +12,56 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// --- SEO IMPROVEMENT: GLOBAL METADATA ---
+// --- SEO: GLOBAL CONFIG ---
+// 1. Replace with your ACTUAL DOMAIN (e.g. https://viponline.in)
+const BASE_URL = "https://viponline.in";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL), // Critical for OpenGraph images
   title: {
     default: "VIP Online | Premium Plywood, Hardware & Interior Fittings",
-    template: "%s | VIP Online",
+    template: "%s | VIP Online", // This adds "| VIP Online" to every page title automatically
   },
   description:
-    "Authorized dealers of Hafele, Blum, Greenply, and Godrej. Buy premium plywood, hardware, kitchen fittings, and safes at wholesale prices in Bangalore.",
+    "Authorized dealers of Hafele, Blum, Greenply, and Godrej in Bangalore. Wholesale prices on Plywood, Laminates, and Kitchen Fittings.",
   keywords: [
-    "VIP HegdeNagar",
     "VIP Hegde Nagar",
-    "Vishwakarma Interior Products Hegde Nagar",
-    "Vishwakarma Interior Products",
-    "VIP",
-    "Plywood",
-    "Hardware",
-    "Interior Fittings",
-    "Hafele",
-    "Blum",
-    "Greenply",
+    "Plywood Dealers Bangalore",
+    "Hafele Fittings",
+    "Blum Hardware",
+    "Greenply Wholesale",
     "Godrej Safes",
-    "Bangalore Hardware Shop",
-    "Wholesale Plywood",
+    "Kitchen Basket",
+    "Interior Hardware Shop",
+    "Vishwakarma Interior Products",
+    "Vishwakarma Interiors",
+    "Rakesh Kumar",
+    "Rakesh Kumar Vishwakarma",
+    "Plywood Shop in Hegde Nagar",
   ],
+
+  // --- ADD THIS BLOCK ---
+  verification: {
+    google: "2vtRi8AibpdSpfJ8PmBNTPpK_2D5louhSd-9y4QIZ6o",
+  },
   openGraph: {
     title: "VIP Online | Wholesale Interior Products",
-    description:
-      "Premium interior products at wholesale prices. Authorized dealers for top global brands.",
-    type: "website",
-    locale: "en_IN",
+    description: "Premium interior products at wholesale prices in Bangalore.",
+    url: BASE_URL,
     siteName: "VIP Online",
+    locale: "en_IN",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -54,7 +73,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        // CHANGED: Added 'bg-orange-50' to the end of this list
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-orange-50`}
       >
         {children}
