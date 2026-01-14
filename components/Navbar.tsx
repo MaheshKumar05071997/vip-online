@@ -1,10 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Phone, Menu, X, Upload, CheckCircle } from "lucide-react";
-import { useState, FormEvent, useEffect } from "react";
+import {
+  Search,
+  Phone,
+  Menu,
+  X,
+  Upload,
+  CheckCircle,
+  ChevronRight,
+} from "lucide-react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/app/firebase"; // Import the file you created in Step 2
+import { searchProducts } from "@/lib/sanityData"; // Import search function
+import { Product } from "@/app/data"; // Import Product type
 import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
@@ -13,13 +23,75 @@ import {
 
 export default function Navbar() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
+
+  // --- SEARCH STATE ---
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null); // Added this
+
+  // --- CLOSE SEARCH ON CLICK OUTSIDE ---
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const clickedDesktop =
+        searchRef.current && searchRef.current.contains(event.target as Node);
+      const clickedMobile =
+        mobileSearchRef.current &&
+        mobileSearchRef.current.contains(event.target as Node);
+
+      if (!clickedDesktop && !clickedMobile) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // --- HANDLE TYPING (DEBOUNCE) ---
+  // Inside Navbar.tsx
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (query.length > 1) {
+        setIsSearching(true);
+        try {
+          const products = await searchProducts(query);
+
+          // --- NEW SORTING LOGIC ---
+          // Jo product name query se start hota hai, usko upar rakho
+          const sortedProducts = products.sort((a: Product, b: Product) => {
+            const aMatch = a.name.toLowerCase().includes(query.toLowerCase());
+            const bMatch = b.name.toLowerCase().includes(query.toLowerCase());
+            if (aMatch && !bMatch) return -1; // a comes first
+            if (!aMatch && bMatch) return 1; // b comes first
+            return 0;
+          });
+          // -------------------------
+
+          setResults(sortedProducts);
+          setShowDropdown(true);
+        } catch (error) {
+          console.error("Search failed", error);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setResults([]);
+        setShowDropdown(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [query]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery("");
+    setShowDropdown(false);
+    if (query.trim()) {
+      router.push(`/products?search=${encodeURIComponent(query)}`);
+      // setQuery(""); // Optional: uncomment if you want to clear search after enter
     }
   };
 
@@ -169,34 +241,92 @@ export default function Navbar() {
         </div>
 
         {/* Main Navbar */}
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-2 md:py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center">
             <img
               src="/vip_logo.jpg"
               alt="VIP Online"
-              className="h-12 w-auto object-contain" /* Adjust h-12 to make it bigger/smaller */
+              className="h-12 w-auto object-contain"
             />
           </Link>
 
-          {/* Desktop Search */}
-          <form
-            onSubmit={handleSearch}
+          {/* Desktop Search (UPDATED WITH AUTO-SUGGEST) */}
+          <div
             className="hidden md:flex flex-1 max-w-lg mx-8 relative"
+            ref={searchRef}
           >
-            <input
-              type="text"
-              placeholder="Search for Plywood, Locks, Hafele..."
-              className="w-full border border-gray-300 btn-capsule py-2 px-4 pl-10 focus:outline-none focus:border-primary"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="absolute left-3 top-2.5 text-gray-400 hover:text-primary"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-          </form>
+            <form onSubmit={handleSearch} className="w-full relative">
+              <input
+                type="text"
+                placeholder="Search for Plywood, Locks, Hafele..."
+                className="w-full border border-gray-300 btn-capsule py-2 px-4 pl-10 focus:outline-none focus:border-primary"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => {
+                  if (results.length > 0) setShowDropdown(true);
+                }}
+              />
+              <button
+                type="submit"
+                className="absolute left-3 top-2.5 text-gray-400 hover:text-primary"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+            </form>
+
+            {/* --- AUTO-SUGGEST DROPDOWN --- */}
+            {showDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[100]">
+                {isSearching ? (
+                  <div className="p-4 text-center text-gray-400 text-sm">
+                    Searching...
+                  </div>
+                ) : results.length > 0 ? (
+                  <ul>
+                    {results.map((product) => (
+                      <li
+                        key={product.id}
+                        className="border-b border-gray-50 last:border-none"
+                      >
+                        <Link
+                          href={`/products/${product.id}`}
+                          className="flex items-center gap-4 p-3 hover:bg-orange-50 transition cursor-pointer"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-10 h-10 object-cover rounded-md bg-gray-100"
+                          />
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm">
+                              {product.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {product.brand} • {product.category}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-300 ml-auto" />
+                        </Link>
+                      </li>
+                    ))}
+                    <li className="bg-gray-50 p-3 text-center">
+                      <button
+                        onClick={handleSearch}
+                        className="text-orange-600 text-sm font-bold hover:underline"
+                      >
+                        View all results for "{query}"
+                      </button>
+                    </li>
+                  </ul>
+                ) : (
+                  <div className="p-4 text-center text-gray-400 text-sm">
+                    No products found.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Desktop Right */}
           <div className="hidden md:flex items-center space-x-4 text-gray-700">
@@ -227,14 +357,20 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Search */}
-        <div className="md:hidden px-4 pb-4 w-full">
+        <div
+          className="md:hidden px-4 pb-2 w-full relative"
+          ref={mobileSearchRef}
+        >
           <form onSubmit={handleSearch} className="relative w-full">
             <input
               type="text"
               placeholder="Search products..."
-              className="w-full border border-gray-300 rounded-lg py-3 px-4 pl-10 focus:outline-none focus:border-primary bg-gray-50 shadow-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg py-2 px-4 pl-10 focus:outline-none focus:border-primary bg-gray-50 shadow-sm"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => {
+                if (results.length > 0) setShowDropdown(true);
+              }}
             />
             <button
               type="submit"
@@ -243,6 +379,59 @@ export default function Navbar() {
               <Search className="w-5 h-5" />
             </button>
           </form>
+
+          {/* --- MOBILE AUTO-SUGGEST DROPDOWN --- */}
+          {showDropdown && (
+            <div className="absolute top-full left-4 right-4 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[100]">
+              {isSearching ? (
+                <div className="p-4 text-center text-gray-400 text-sm">
+                  Searching...
+                </div>
+              ) : results.length > 0 ? (
+                <ul>
+                  {results.map((product) => (
+                    <li
+                      key={product.id}
+                      className="border-b border-gray-50 last:border-none"
+                    >
+                      <Link
+                        href={`/products/${product.id}`}
+                        className="flex items-center gap-4 p-3 hover:bg-orange-50 transition cursor-pointer"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-10 h-10 object-cover rounded-md bg-gray-100"
+                        />
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm">
+                            {product.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {product.brand} • {product.category}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-300 ml-auto" />
+                      </Link>
+                    </li>
+                  ))}
+                  <li className="bg-gray-50 p-3 text-center">
+                    <button
+                      onClick={handleSearch}
+                      className="text-orange-600 text-sm font-bold hover:underline"
+                    >
+                      View all results for "{query}"
+                    </button>
+                  </li>
+                </ul>
+              ) : (
+                <div className="p-4 text-center text-gray-400 text-sm">
+                  No products found.
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Contractor Banner */}

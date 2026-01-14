@@ -56,11 +56,37 @@ export default function ProductCatalog({
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
 
+    // --- STEP 1: SMART CATEGORY DETECTION ---
+    // Logic: If a product matches the name "fevi", we identify its category (Adhesives).
+    // Then we allow ALL products from "Adhesives" to show up.
+    const matchedCategories = new Set<string>();
+
+    products.forEach((p) => {
+      const directMatch =
+        p.name.toLowerCase().includes(query) ||
+        p.brand.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query);
+
+      // @ts-ignore
+      const variantMatch = p.variants?.some((v: any) =>
+        (v.name || "").toLowerCase().includes(query)
+      );
+
+      if (directMatch || variantMatch) {
+        matchedCategories.add(p.category);
+      }
+    });
+    // ----------------------------------------
+
     products.forEach((product) => {
+      // Check if this product belongs to a matched category
+      const isCategoryMatch = matchedCategories.has(product.category);
+
       const matchesParent =
         product.name.toLowerCase().includes(query) ||
         product.brand.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query);
+        product.category.toLowerCase().includes(query) ||
+        isCategoryMatch;
 
       // @ts-ignore
       const variants = product.variants || [];
@@ -69,27 +95,34 @@ export default function ProductCatalog({
         (v.name || v).toLowerCase().includes(query)
       );
 
+      // Helper to fix the name: "Standard" -> "Product Name"
+      const getDisplayName = (v: any) =>
+        v.name === "Standard" ? product.name : `${product.name} - ${v.name}`;
+
+      // If the PARENT matches (via name or Smart Category), show everything
       if (matchesParent) {
         if (variants.length > 0) {
           variants.forEach((v: any) => {
             filteredProducts.push({
               ...product,
               ...v,
-              name: v.name || v,
+              name: getDisplayName(v), // <--- FIXED: Uses Product Name if "Standard"
               image: v.image || product.image,
               variantName: v.name || v,
-              originalProduct: product, // Keep ref to original for logic
+              originalProduct: product,
             });
           });
         } else {
           filteredProducts.push(product);
         }
-      } else if (matchingVariants.length > 0) {
+      }
+      // If only specific variants matched
+      else if (matchingVariants.length > 0) {
         matchingVariants.forEach((v: any) => {
           filteredProducts.push({
             ...product,
             ...v,
-            name: v.name || v,
+            name: getDisplayName(v), // <--- FIXED: Uses Product Name if "Standard"
             image: v.image || product.image,
             variantName: v.name || v,
             originalProduct: product,
@@ -98,6 +131,24 @@ export default function ProductCatalog({
       }
     });
 
+    // --- STEP 2: SORTING ---
+    // Ensure actual text matches (Fevicol) appear BEFORE expanded category matches (Grippo)
+    filteredProducts.sort((a, b) => {
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+
+      // Check if the item actually has the search term
+      const aHasTerm =
+        aName.includes(query) || a.brand.toLowerCase().includes(query);
+      const bHasTerm =
+        bName.includes(query) || b.brand.toLowerCase().includes(query);
+
+      if (aHasTerm && !bHasTerm) return -1; // a comes first
+      if (!aHasTerm && bHasTerm) return 1; // b comes first
+      return 0;
+    });
+
+    // Apply additional filters if present
     if (selectedCategory !== "All") {
       filteredProducts = filteredProducts.filter(
         (p) => p.category === selectedCategory
@@ -110,6 +161,7 @@ export default function ProductCatalog({
       );
     }
   } else {
+    // Standard filtering (No Search)
     filteredProducts = products.filter((product) => {
       if (
         selectedCategory === "Laminates" &&

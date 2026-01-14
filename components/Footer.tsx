@@ -173,8 +173,10 @@ export default function Footer() {
               Sign Up as Contractor
             </button>
             <a
-              href="https://wa.me/919845575885"
+              href="https://wa.me/919845575885?text=Hello,%20I%20would%20like%20to%20request%20an%20instant%20quote%20for%20your%20products."
               className="border border-gray-300 px-6 py-3 btn-capsule font-semibold hover:bg-gray-100 transition"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Get Instant Quote
             </a>

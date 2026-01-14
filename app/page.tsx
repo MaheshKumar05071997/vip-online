@@ -1,15 +1,8 @@
-"use client";
-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
-import { getProducts } from "@/lib/sanity"; // Import the new fetcher
-import {
-  FEATURED_BRANDS,
-  CATEGORIES,
-  FEATURED_PRODUCTS,
-  TESTIMONIALS,
-} from "@/app/data";
+import { getProducts } from "@/lib/sanityData"; // FIXED IMPORT
+import { FEATURED_BRANDS, CATEGORIES, TESTIMONIALS } from "@/app/data";
 import {
   ArrowRight,
   Tag,
@@ -21,18 +14,13 @@ import {
   Award,
   Truck,
   Banknote,
-  MapPin, // <--- ADD THIS
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 
-export default function Home() {
-  // --- Add this function to scroll without changing URL ---
-  const scrollToLocation = () => {
-    const element = document.getElementById("our-location");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+export default async function Home() {
+  // 1. FETCH PRODUCTS FROM SANITY (Server Side)
+  const products = await getProducts();
   // --- TRUST BAR CONFIG ---
   const TRUST_BADGES = [
     {
@@ -167,8 +155,8 @@ export default function Home() {
                 </Link>
 
                 {/* Shop Location - Aligned Capsule with Animation */}
-                <button
-                  onClick={scrollToLocation}
+                <a
+                  href="#our-location"
                   className="group relative w-full sm:w-auto bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-3 shadow-lg"
                 >
                   <span className="relative flex h-3 w-3">
@@ -177,7 +165,7 @@ export default function Home() {
                   </span>
                   <MapPin className="w-5 h-5 text-red-500 group-hover:animate-bounce" />
                   <span>Store Location</span>
-                </button>
+                </a>
               </div>
             </FadeIn>
           </div>
@@ -344,32 +332,37 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {FEATURED_PRODUCTS.slice(0, 4).map((product, idx) => {
-              let targetLink = `/products/${product.id}`;
+          {/* FIXED: Removed the outer 'grid' div that was causing the squish */}
+          {products.length === 0 ? (
+            <div className="text-center py-10 text-gray-400">
+              Loading products...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {products.slice(0, 4).map((product) => {
+                let targetLink = `/products/${product.id}`;
 
-              // --- UPDATE: EXCEPTION FOR GRIPPO ---
-              // If it's Laminates/Flush Doors OR specifically "Grippo", go direct to variant.
-              if (
-                (["Flush Doors", "Laminates"].includes(product.category) ||
-                  product.name === "Grippo") &&
-                product.variants &&
-                product.variants.length > 0
-              ) {
-                // @ts-ignore
-                const vName = product.variants[0].name || product.variants[0];
+                if (
+                  (["Flush Doors", "Laminates"].includes(product.category) ||
+                    product.name === "Grippo") &&
+                  product.variants &&
+                  product.variants.length > 0
+                ) {
+                  // @ts-ignore
+                  const vName = product.variants[0].name || product.variants[0];
+                  targetLink = `/products/${
+                    product.id
+                  }/variant?name=${encodeURIComponent(String(vName))}`;
+                }
 
-                // FIXED: Wrapped vName in String() to satisfy TypeScript
-                targetLink = `/products/${
-                  product.id
-                }/variant?name=${encodeURIComponent(String(vName))}`;
-              }
-
-              return (
-                <FadeIn key={product.id} delay={idx * 0.1}>
-                  <Link href={targetLink} className="block group">
-                    <div className="border border-orange-100 rounded-xl overflow-hidden hover:shadow-lg transition bg-white h-full">
-                      <div className="h-48 bg-gray-100 relative">
+                return (
+                  <Link
+                    key={product.id}
+                    href={targetLink}
+                    className="block group h-full"
+                  >
+                    <div className="border border-orange-100 rounded-xl overflow-hidden hover:shadow-lg transition bg-white h-full flex flex-col">
+                      <div className="h-48 bg-gray-100 relative shrink-0">
                         <img
                           src={product.image}
                           alt={product.name}
@@ -379,23 +372,23 @@ export default function Home() {
                           {product.brand}
                         </span>
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-primary transition">
+                      <div className="p-4 flex flex-col flex-grow">
+                        <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-primary transition line-clamp-1">
                           {product.name}
                         </h3>
                         <p className="text-gray-500 text-sm mb-4">
                           {product.category}
                         </p>
-                        <button className="w-full bg-orange-50 text-gray-800 py-2 btn-capsule font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
+                        <button className="w-full mt-auto bg-orange-50 text-gray-800 py-2 btn-capsule font-semibold group-hover:bg-primary group-hover:text-white transition flex justify-center items-center gap-2">
                           View Details
                         </button>
                       </div>
                     </div>
                   </Link>
-                </FadeIn>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
