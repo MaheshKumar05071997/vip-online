@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   Facebook,
   Instagram,
-  Twitter,
+  Youtube, // <--- Add this, Remove 'Twitter'
   Mail,
   Phone,
   MapPin,
@@ -227,14 +227,34 @@ export default function Footer() {
             </p>
             <p className="text-xs text-gray-400 mb-6">GSTIN: 29AEGPV8823C2Z4</p>
             <div className="flex space-x-4 justify-center md:justify-start">
-              <a href="#" className="text-gray-400 hover:text-blue-600">
+              {/* Facebook */}
+              <a
+                href="https://www.facebook.com/share/17jesf9SYo/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-blue-600"
+              >
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-pink-600">
+
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/viponlinesales.in?utm_source=qr&igsh=YXA5dHVvdXNxaTdw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-pink-600"
+              >
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-blue-400">
-                <Twitter className="w-5 h-5" />
+
+              {/* YouTube */}
+              <a
+                href="https://www.youtube.com/@viponlinesales"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-red-600"
+              >
+                <Youtube className="w-5 h-5" />
               </a>
             </div>
           </div>

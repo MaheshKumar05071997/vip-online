@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import NextTopLoader from "nextjs-toploader"; // <--- 1. ADD IMPORT
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,6 +76,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-orange-50`}
       >
+        {/* 2. ADD THE LOADER COMPONENT HERE */}
+        <NextTopLoader
+          color="#F97316" // VIP Orange Color
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={true} // Set to false if you don't want the spinner circle on top right
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #F97316,0 0 5px #F97316"
+        />
+
         {children}
       </body>
     </html>
